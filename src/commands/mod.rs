@@ -10,7 +10,7 @@ pub mod tasks;
 pub mod users;
 
 pub fn parse() -> Result<(), inquire::error::InquireError> {
-    let matches = command!() // requires `cargo` feature
+    let command = command!() // requires `cargo` feature
         .propagate_version(true)
         .subcommand_required(true)
         .arg_required_else_help(true)
@@ -19,6 +19,7 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
         .subcommand(Command::new("print").about("Prints options for the project"))
         .subcommand(
             Command::new("categories")
+                .arg_required_else_help(true)
                 .about("Alter categoris of the project")
                 .subcommand(Command::new("add").about("Adds new category"))
                 .subcommand(Command::new("remove").about("Removes category"))
@@ -32,6 +33,8 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
         )
         .subcommand(
             Command::new("tasks")
+                .subcommand_required(true)
+                .arg_required_else_help(true)
                 .about("Alter tasks of the project")
                 .subcommand(Command::new("add").about("Adds new task"))
                 .subcommand(Command::new("remove").about("Removes task"))
@@ -48,6 +51,7 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
         )
         .subcommand(
             Command::new("users")
+                .arg_required_else_help(true)
                 .about("Alter users of project")
                 .subcommand(Command::new("add").about("Adds new users"))
                 .subcommand(Command::new("remove").about("Removes users"))
@@ -63,9 +67,9 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
             Command::new("print-task")
                 .about("Prints one task")
                 .arg(arg!(["ID"])),
-        )
-        .get_matches();
+        );
 
+    let matches = command.get_matches();
     match matches.subcommand() {
         Some(("init", _)) => init()?,
         Some(("status", _)) => {
@@ -80,8 +84,9 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
             let p = data_storage::load_project()?;
             p.print_single_task(id);
         }
-
-        _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
+        _ => {
+            println!("unkown command")
+        }
     };
 
     Ok(())
