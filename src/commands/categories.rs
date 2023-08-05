@@ -1,33 +1,20 @@
-use clap::{arg, command, Command};
+use clap::ArgMatches;
 use inquire::MultiSelect;
 
 use crate::{data_storage, models::Project};
 
 use super::list_items::CategoryItem;
 
-pub(crate) fn prompt_categories() -> Result<(), inquire::error::InquireError> {
-    let category_matches = command!()
-        .propagate_version(true)
-        .subcommand_required(true)
-        .arg_required_else_help(true)
-        .subcommand(Command::new("add").about("Adds new category"))
-        .subcommand(Command::new("remove").about("Removes category"))
-        .subcommand(Command::new("edit").about("Edits category"))
-        .subcommand(Command::new("print").about("Prints categories"))
-        .subcommand(
-            Command::new("print-category")
-                .about("Prints one category")
-                .arg(arg!(["ID"])),
-        )
-        .get_matches();
-
+pub(crate) fn prompt_categories(
+    category_matches: &ArgMatches,
+) -> Result<(), inquire::error::InquireError> {
     let mut p = data_storage::load_project().unwrap();
     match category_matches.subcommand() {
         Some(("add", _)) => prompt_create_categories(&mut p).unwrap(),
         Some(("remove", _)) => prompt_remove_categories(&mut p).unwrap(),
         // Some(("edit", _)) => prompt_edit_categories(&mut p).unwrap(),
         // Some(("print", _)) => p.print_categories(),
-        Some(("print-category", args)) => {
+        Some(("print", args)) => {
             let id: u64 = args.get_one::<String>("ID").unwrap().parse().unwrap();
             print_single_category(&p, id);
         }

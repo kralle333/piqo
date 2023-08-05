@@ -1,37 +1,20 @@
-use clap::{arg, command, Command};
+use clap::ArgMatches;
 use inquire::ui::{Color, RenderConfig, Styled};
 use inquire::{MultiSelect, Select};
 
 use super::super::data_storage;
 use super::super::models::Project;
 
-use super::categories;
 use super::categories::get_mod_list;
 use super::list_items::TaskItem;
+use super::{categories, users};
 
-pub(crate) fn prompt_tasks() -> Result<(), inquire::error::InquireError> {
-    let task_matches = command!()
-        .propagate_version(true)
-        .subcommand_required(true)
-        .arg_required_else_help(true)
-        .subcommand(Command::new("add").about("Adds new task"))
-        .subcommand(Command::new("remove").about("Removes task"))
-        .subcommand(Command::new("assign").about("Assigns task to user"))
-        .subcommand(Command::new("unassign").about("Unassigns task from user"))
-        .subcommand(Command::new("move").about("Moves tasks to another category"))
-        .subcommand(Command::new("edit").about("Edits task"))
-        .subcommand(Command::new("print").about("Prints tasks"))
-        .subcommand(
-            Command::new("print-task")
-                .about("Prints one task")
-                .arg(arg!(["ID"])),
-        )
-        .get_matches();
+pub(crate) fn prompt_tasks(task_matches: &ArgMatches) -> Result<(), inquire::error::InquireError> {
     let mut p = data_storage::load_project()?;
     match task_matches.subcommand() {
         Some(("add", _)) => prompt_create_tasks(&mut p)?,
         Some(("archieve", _)) => prompt_archieve_tasks(&mut p)?,
-        // Some(("assign", _)) => prompt_assign_task()?,
+        Some(("assign", _)) => users::prompt_assign_users(&mut p)?,
         // Some(("unassign", _)) => p.unassign_task()?,
         Some(("move", _)) => prompt_move_tasks(&mut p)?,
         // Some(("edit", _)) => p.edit_task()?,

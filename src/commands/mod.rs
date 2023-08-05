@@ -1,5 +1,5 @@
 use crate::commands::categories::prompt_create_categories;
-use clap::{arg, command, Command};
+use clap::{arg, command, Arg, Command};
 use std::path::Path;
 
 use crate::{data_storage, models::Project};
@@ -7,7 +7,7 @@ use crate::{data_storage, models::Project};
 pub mod categories;
 pub mod list_items;
 pub mod tasks;
-pub mod user;
+pub mod users;
 
 pub fn parse() -> Result<(), inquire::error::InquireError> {
     let matches = command!() // requires `cargo` feature
@@ -17,9 +17,48 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
         .subcommand(Command::new("init").about("Initializes new project"))
         .subcommand(Command::new("status").about("Prints status of the project"))
         .subcommand(Command::new("print").about("Prints options for the project"))
-        .subcommand(Command::new("categories").about("Alter categoris of the project"))
-        .subcommand(Command::new("tasks").about("Alter tasks of the project"))
-        .subcommand(Command::new("users").about("Alter users of project"))
+        .subcommand(
+            Command::new("categories")
+                .about("Alter categoris of the project")
+                .subcommand(Command::new("add").about("Adds new category"))
+                .subcommand(Command::new("remove").about("Removes category"))
+                .subcommand(Command::new("edit").about("Edits category"))
+                .subcommand(Command::new("prin").about("Prints categories"))
+                .subcommand(
+                    Command::new("print-category")
+                        .about("Prints one category")
+                        .arg(arg!(["ID"])),
+                ),
+        )
+        .subcommand(
+            Command::new("tasks")
+                .about("Alter tasks of the project")
+                .subcommand(Command::new("add").about("Adds new task"))
+                .subcommand(Command::new("remove").about("Removes task"))
+                .subcommand(Command::new("assign").about("Assigns task to user"))
+                .subcommand(Command::new("unassign").about("Unassigns task from user"))
+                .subcommand(Command::new("move").about("Moves tasks to another category"))
+                .subcommand(Command::new("edit").about("Edits task"))
+                .subcommand(Command::new("print").about("Prints tasks"))
+                .subcommand(
+                    Command::new("print-task")
+                        .about("Prints one task")
+                        .arg(arg!(["ID"])),
+                ),
+        )
+        .subcommand(
+            Command::new("users")
+                .about("Alter users of project")
+                .subcommand(Command::new("add").about("Adds new users"))
+                .subcommand(Command::new("remove").about("Removes users"))
+                .subcommand(Command::new("assign").about("Assign users to tasks"))
+                .subcommand(Command::new("list").about("Lists Users"))
+                .subcommand(
+                    Command::new("print")
+                        .about("Print a single user")
+                        .arg(Arg::new("ID").required(true)),
+                ),
+        )
         .subcommand(
             Command::new("print-task")
                 .about("Prints one task")
@@ -33,9 +72,9 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
             let p = data_storage::load_project()?;
             p.print_status()
         }
-        Some(("categories", _)) => categories::prompt_categories()?,
-        Some(("tasks", _)) => tasks::prompt_tasks()?,
-        Some(("users", _)) => user::prompt_users()?,
+        Some(("categories", sub_matches)) => categories::prompt_categories(sub_matches)?,
+        Some(("tasks", sub_matches)) => tasks::prompt_tasks(sub_matches)?,
+        Some(("users", sub_matches)) => users::prompt_users(sub_matches)?,
         Some(("print-task", args)) => {
             let id: u64 = args.get_one::<String>("ID").unwrap().parse().unwrap();
             let p = data_storage::load_project()?;
@@ -59,9 +98,11 @@ fn init() -> Result<(), inquire::error::InquireError> {
         }
     };
 
-    println!("Found git repo at {}", git_location.display());
+    let (er, _) = git_location.into_repository_and_work_tree_directories();
 
-    if Path::new(".crabd").exists() {
+    let crabd_json_path = er.join(".crabd");
+
+    if Path::new(crabd_json_path.to_str().unwrap()).exists() {
         println!("Project already initialized");
         return Ok(());
     }

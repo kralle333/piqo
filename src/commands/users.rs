@@ -1,4 +1,6 @@
-use clap::{arg, command, Command};
+use std::collections::HashMap;
+
+use clap::ArgMatches;
 use inquire::{MultiSelect, Select};
 
 use crate::{
@@ -8,29 +10,16 @@ use crate::{
 
 use super::{list_items::UserItem, tasks};
 
-pub(crate) fn prompt_users() -> Result<(), inquire::error::InquireError> {
-    let users_matches = command!()
-        .propagate_version(true)
-        .subcommand_required(true)
-        .arg_required_else_help(true)
-        .subcommand(Command::new("add").about("Add a user"))
-        .subcommand(Command::new("remove").about("Remove a user"))
-        .subcommand(Command::new("edit").about("Edit a user"))
-        .subcommand(Command::new("print").about("Print all users"))
-        .subcommand(
-            Command::new("print")
-                .about("Prints one user")
-                .arg(arg!(["ID"])),
-        )
-        .get_matches();
+pub(crate) fn prompt_users(sub_matches: &ArgMatches) -> Result<(), inquire::error::InquireError> {
+    // let stash_command = sub_matches.subcommand().unwrap_or(("push", sub_matches));
 
     let mut p = data_storage::load_project().unwrap();
-    match users_matches.subcommand() {
+    match sub_matches.subcommand() {
         Some(("add", _)) => prompt_add_users(&mut p).unwrap(),
         Some(("remove", _)) => prompt_remove_users(&mut p).unwrap(),
         Some(("assign", _)) => prompt_assign_users(&mut p).unwrap(),
         Some(("list", _)) => prompt_list(&mut p),
-        Some(("print-user", args)) => {
+        Some(("print", args)) => {
             let id: u64 = args.get_one::<String>("ID").unwrap().parse().unwrap();
             print_single_user(&p, id);
         }
@@ -45,7 +34,7 @@ fn prompt_list(p: &mut Project) {
     for ele in users {
         match ele.git_email() {
             Some(email) => println!("{} | {} | {}", ele.id(), ele.name(), email),
-            None => println!("{} | {} | {}", ele.id(), ele.name(), "No email"),
+            None => println!("{} | {} | No email", ele.id(), ele.name()),
         }
     }
 }
@@ -69,7 +58,7 @@ fn get_users_mod_list(p: &Project) -> Vec<User> {
         .collect()
 }
 
-fn prompt_assign_users(p: &mut Project) -> Result<(), inquire::error::InquireError> {
+pub(crate) fn prompt_assign_users(p: &mut Project) -> Result<(), inquire::error::InquireError> {
     let selected_task =
         Select::new("Select Task To Assign", tasks::get_tasks_mod_list(p)).prompt()?;
 
@@ -97,12 +86,19 @@ fn prompt_add_users(p: &mut crate::models::Project) -> Result<(), inquire::error
 
             let list = String::from_utf8(output.stdout);
 
-            let split_one = list
-                .unwrap()
-                .lines()
-                .map(|l| UserItem {
-                    name: l.split(" | ").collect::<Vec<&str>>()[0].to_string(),
-                    git_email: l.split(" | ").collect::<Vec<&str>>()[1].to_string(),
+            let mut unique_dict = HashMap::new();
+            list.unwrap().lines().for_each(|l| {
+                unique_dict.insert(
+                    l.split(" | ").collect::<Vec<&str>>()[1].to_string(),
+                    l.split(" | ").collect::<Vec<&str>>()[0].to_string(),
+                );
+            });
+
+            let split_one = unique_dict
+                .iter()
+                .map(|(email, name)| UserItem {
+                    name: name.to_string(),
+                    git_email: email.to_string(),
                 })
                 .collect::<Vec<UserItem>>();
 
@@ -112,10 +108,13 @@ fn prompt_add_users(p: &mut crate::models::Project) -> Result<(), inquire::error
                 p.add_user(&ele.name, &ele.git_email);
             }
 
+            data_storage::store_project(p)?;
             Ok(())
         }
         "Add user manually" => {
             prompt_create_users(p)?;
+
+            data_storage::store_project(p)?;
             Ok(())
         }
         _ => unreachable!("Exhausted list of options and arg_required_else_help prevents `None`"),
