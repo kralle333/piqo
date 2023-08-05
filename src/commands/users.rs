@@ -11,13 +11,13 @@ use crate::{
 use super::{list_items::UserItem, tasks};
 
 pub(crate) fn prompt_users(sub_matches: &ArgMatches) -> Result<(), inquire::error::InquireError> {
-    // let stash_command = sub_matches.subcommand().unwrap_or(("push", sub_matches));
-
     let mut p = data_storage::load_project().unwrap();
+
     match sub_matches.subcommand() {
         Some(("add", _)) => prompt_add_users(&mut p).unwrap(),
         Some(("remove", _)) => prompt_remove_users(&mut p).unwrap(),
         Some(("assign", _)) => prompt_assign_users(&mut p).unwrap(),
+        Some(("unassign", _)) => prompt_unassign_users(&mut p).unwrap(),
         Some(("list", _)) => prompt_list(&mut p),
         Some(("print", args)) => {
             let id: u64 = args.get_one::<String>("ID").unwrap().parse().unwrap();
@@ -58,15 +58,56 @@ fn get_users_mod_list(p: &Project) -> Vec<User> {
         .collect()
 }
 
+fn get_users_assigned_mod_list(p: &Project, task_id: u64) -> Vec<User> {
+    p.get_assigned_users(task_id)
+        .iter()
+        .map(|u| User {
+            id: u.id(),
+            name: u.name().to_string(),
+            git_email: u.git_email.to_owned(),
+        })
+        .collect()
+}
+
 pub(crate) fn prompt_assign_users(p: &mut Project) -> Result<(), inquire::error::InquireError> {
-    let selected_task =
-        Select::new("Select Task To Assign", tasks::get_tasks_mod_list(p)).prompt()?;
+    let tasks_mod_list = tasks::get_tasks_mod_list(p);
+    if tasks_mod_list.is_empty() {
+        println!("No tasks to assign");
+        return Ok(());
+    }
+
+    let selected_task = Select::new("Select Task To Assign", tasks_mod_list).prompt()?;
 
     let users_to_assign =
         MultiSelect::new("Select Users To Assign", get_users_mod_list(p)).prompt()?;
 
     for user in users_to_assign {
         p.assign_task(user.id(), selected_task.id);
+    }
+    Ok(())
+}
+
+pub(crate) fn prompt_unassign_users(p: &mut Project) -> Result<(), inquire::error::InquireError> {
+    let tasks_mod_list = tasks::get_tasks_mod_list(p);
+
+    if tasks_mod_list.is_empty() {
+        println!("No tasks to unassign");
+        return Ok(());
+    }
+
+    let selected_task = Select::new("Select Task To Unassign", tasks_mod_list).prompt()?;
+
+    let assigned = get_users_assigned_mod_list(p, selected_task.id);
+
+    if assigned.is_empty() {
+        println!("No users assigned to this task");
+        return Ok(());
+    }
+
+    let users_to_unassign = MultiSelect::new("Select Users To Unassign", assigned).prompt()?;
+
+    for user in users_to_unassign {
+        p.unassign_task(user.id(), selected_task.id);
     }
     Ok(())
 }

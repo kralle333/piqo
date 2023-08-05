@@ -15,7 +15,7 @@ pub(crate) struct Task {
     created_at_utc: i64,
     updated_at_utc: i64,
     archieved_at_utc: Option<i64>,
-    assigned_to: Option<u64>,
+    assigned_to: Vec<u64>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -127,7 +127,7 @@ impl Project {
             created_at_utc,
             updated_at_utc,
             archieved_at_utc: None,
-            assigned_to: None,
+            assigned_to: vec![],
         };
         self.tasks.push(task);
     }
@@ -164,17 +164,19 @@ impl Project {
         println!("{}", header);
         println!("{}", "-".repeat(180));
         for t in &tasks {
-            let assigned_to = match t.assigned_to.as_ref() {
-                Some(id) => user_names.get(&id).unwrap(),
-                None => "None",
-            };
+            let assigned_to_string = t
+                .assigned_to
+                .iter()
+                .map(|i| self.get_user(*i).unwrap().name())
+                .collect::<Vec<&str>>()
+                .join(", ");
             let row = format!(
                 "{:<4} | {:<20} | {:<50} | {:<20} | {:<20} | {:<25} | {:<25}",
                 t.id,
                 utils::truncate(&t.name, 20),
                 utils::truncate(&t.description, 50),
                 utils::center_align(category_names.get(&t.category).unwrap(), 20),
-                utils::center_align(assigned_to, 20),
+                utils::center_align(&utils::truncate(&assigned_to_string, 20), 20),
                 chrono::DateTime::<chrono::Utc>::from_utc(
                     chrono::NaiveDateTime::from_timestamp_opt(t.created_at_utc, 0).unwrap(),
                     chrono::Utc
@@ -222,15 +224,14 @@ impl Project {
                     )
                 );
 
-                let user =
-                    match self.users.iter().find(|u| {
-                        t.assigned_to.is_some() && &u.id == t.assigned_to.as_ref().unwrap()
-                    }) {
-                        Some(u) => &u.name,
-                        None => "None",
-                    };
-
-                println!("Assigned To: {}", user);
+                if self.users.is_empty() {
+                    println!("No users assigned to task");
+                } else {
+                    println!("Users assigned to task:");
+                    self.users
+                        .iter()
+                        .for_each(|u| println!("{} | {}", u.id, u.name));
+                }
             }
             None => println!("Task with id {} not found", id),
         }
@@ -322,11 +323,33 @@ impl Project {
     }
 
     pub(crate) fn assign_task(&mut self, user_id: u64, task_id: u64) {
+        let already_assigned = self
+            .tasks
+            .iter()
+            .find(|t| t.id == task_id)
+            .unwrap()
+            .assigned_to
+            .iter()
+            .any(|u| u == &user_id);
+        if already_assigned {
+            return;
+        }
+
         self.tasks
             .iter_mut()
             .find(|t| t.id == task_id)
             .unwrap()
-            .assigned_to = Some(user_id);
+            .assigned_to
+            .push(user_id);
+    }
+
+    pub(crate) fn unassign_task(&mut self, user_id: u64, task_id: u64) {
+        self.tasks
+            .iter_mut()
+            .find(|t| t.id == task_id)
+            .unwrap()
+            .assigned_to
+            .retain(|u| u != &user_id);
     }
 
     pub(crate) fn add_user(&mut self, name: &str, git_email: &str) {
@@ -341,5 +364,14 @@ impl Project {
 
     pub(crate) fn get_user(&self, id: u64) -> Option<&User> {
         self.users.iter().find(|u| u.id == id)
+    }
+
+    pub(crate) fn get_assigned_users(&self, id: u64) -> Vec<&User> {
+        let task = self.tasks.iter().find(|t| t.id == id).unwrap();
+        let mut users = Vec::new();
+        for user_id in &task.assigned_to {
+            users.push(self.get_user(*user_id).unwrap().to_owned());
+        }
+        users
     }
 }

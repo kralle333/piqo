@@ -15,7 +15,7 @@ pub(crate) fn prompt_tasks(task_matches: &ArgMatches) -> Result<(), inquire::err
         Some(("add", _)) => prompt_create_tasks(&mut p)?,
         Some(("archieve", _)) => prompt_archieve_tasks(&mut p)?,
         Some(("assign", _)) => users::prompt_assign_users(&mut p)?,
-        // Some(("unassign", _)) => p.unassign_task()?,
+        Some(("unassign", _)) => users::prompt_unassign_users(&mut p)?,
         Some(("move", _)) => prompt_move_tasks(&mut p)?,
         // Some(("edit", _)) => p.edit_task()?,
         Some(("print", _)) => p.print_tasks(),
