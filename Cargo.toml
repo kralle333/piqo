@@ -1,0 +1,16 @@
+[package]
+name = "crabd"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "4.3.17", features=["cargo"]}
+serde = { version = "1.0", features = ["derive"] }
+serde_json = {version = "1.0.103"}
+inquire = { version = "0.6.2", features=["editor"]}
+chrono = { version = "0.4.26"}
+rand = {version = "0.8.5"}
+owo-colors = "3.5.0"
+gix-discover = "0.22.1"
