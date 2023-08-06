@@ -33,3 +33,6 @@ pub fn center_align(text: &str, column_width: usize) -> String {
         width = column_width
     )
 }
+pub fn left_align(text: &str, column_width: usize) -> String {
+    format!("{:<width$}", text, width = column_width)
+}

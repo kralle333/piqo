@@ -194,33 +194,73 @@ impl Project {
 
     pub(crate) fn print_single_task(&self, id: u64) {
         let task = self.tasks.iter().find(|t| t.id == id);
+
+        let width = 60;
+        let print_line_left = |s: &str| {
+            println!("|{}|", utils::left_align(s, width));
+        };
+        let print_line_centered = |s: &str| {
+            println!("|{}|", utils::center_align(s, width));
+        };
+        let print_divider = || {
+            println!("|{}|", "-".repeat(width));
+        };
+
         match task {
             Some(t) => {
-                println!("{:<50}", utils::center_align(&t.name, 50));
-                println!("{}", "-".repeat(60));
-                println!("{}", t.description);
-                println!("{}", "-".repeat(60));
+                print_divider();
+                print_line_centered(&t.name);
+                print_divider();
+                print_line_left(&t.description);
+
+                println!("|{}|", "-".repeat(60));
+                println!("|{:<60}|", utils::center_align(&t.name, 60));
+                println!("|{}|", "-".repeat(60));
+                println!("|{}|", t.description);
+                println!("|{}|", "-".repeat(60));
                 println!(
-                    "Category: {}",
-                    self.categories
-                        .iter()
-                        .find(|c| c.id == t.category)
-                        .unwrap()
-                        .name
+                    "|{}|",
+                    utils::left_align(
+                        &format!(
+                            "Category: {}",
+                            self.categories
+                                .iter()
+                                .find(|c| c.id == t.category)
+                                .unwrap()
+                                .name
+                        ),
+                        60
+                    )
                 );
 
                 let created_at =
                     chrono::NaiveDateTime::from_timestamp_opt(t.created_at_utc, 0).unwrap();
                 println!(
-                    "Created At: {}",
-                    chrono::DateTime::<chrono::Utc>::from_utc(created_at.to_owned(), chrono::Utc)
+                    "|{}|",
+                    &utils::left_align(
+                        &format!(
+                            "Created At: {}",
+                            chrono::DateTime::<chrono::Utc>::from_utc(
+                                created_at.to_owned(),
+                                chrono::Utc
+                            )
+                        ),
+                        60
+                    )
                 );
 
                 println!(
-                    "Updated At: {}",
-                    chrono::DateTime::<chrono::Utc>::from_utc(
-                        chrono::NaiveDateTime::from_timestamp_opt(t.updated_at_utc, 0).unwrap(),
-                        chrono::Utc
+                    "|{}|",
+                    &utils::left_align(
+                        &format!(
+                            "Updated At: {}",
+                            chrono::DateTime::<chrono::Utc>::from_utc(
+                                chrono::NaiveDateTime::from_timestamp_opt(t.updated_at_utc, 0)
+                                    .unwrap(),
+                                chrono::Utc
+                            )
+                        ),
+                        60
                     )
                 );
 
@@ -230,8 +270,10 @@ impl Project {
                     println!("Users assigned to task:");
                     self.users
                         .iter()
-                        .for_each(|u| println!("{} | {}", u.id, u.name));
+                        .for_each(|u| println!("- {} | {}", u.id, u.name));
                 }
+
+                println!("|{}|", "-".repeat(60));
             }
             None => println!("Task with id {} not found", id),
         }
