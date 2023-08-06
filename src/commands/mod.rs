@@ -24,9 +24,9 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
                 .subcommand(Command::new("add").about("Adds new category"))
                 .subcommand(Command::new("remove").about("Removes category"))
                 .subcommand(Command::new("edit").about("Edits category"))
-                .subcommand(Command::new("prin").about("Prints categories"))
+                .subcommand(Command::new("list").about("Prints categories"))
                 .subcommand(
-                    Command::new("print-category")
+                    Command::new("print")
                         .about("Prints one category")
                         .arg(arg!(["ID"])),
                 ),
@@ -42,9 +42,9 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
                 .subcommand(Command::new("unassign").about("Unassigns task from user"))
                 .subcommand(Command::new("move").about("Moves tasks to another category"))
                 .subcommand(Command::new("edit").about("Edits task"))
-                .subcommand(Command::new("print").about("Prints tasks"))
+                .subcommand(Command::new("list").about("Prints tasks"))
                 .subcommand(
-                    Command::new("print-task")
+                    Command::new("print")
                         .about("Prints one task")
                         .arg(arg!(["ID"])),
                 ),
@@ -56,17 +56,12 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
                 .subcommand(Command::new("add").about("Adds new users"))
                 .subcommand(Command::new("remove").about("Removes users"))
                 .subcommand(Command::new("assign").about("Assign users to tasks"))
-                .subcommand(Command::new("list").about("Lists Users"))
+                .subcommand(Command::new("list").about("Lists users"))
                 .subcommand(
                     Command::new("print")
                         .about("Print a single user")
                         .arg(Arg::new("ID").required(true)),
                 ),
-        )
-        .subcommand(
-            Command::new("print-task")
-                .about("Prints one task")
-                .arg(arg!(["ID"])),
         );
 
     let matches = command.get_matches();

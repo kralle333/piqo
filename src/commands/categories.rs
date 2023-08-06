@@ -12,8 +12,8 @@ pub(crate) fn prompt_categories(
     match category_matches.subcommand() {
         Some(("add", _)) => prompt_create_categories(&mut p).unwrap(),
         Some(("remove", _)) => prompt_remove_categories(&mut p).unwrap(),
-        // Some(("edit", _)) => prompt_edit_categories(&mut p).unwrap(),
-        // Some(("print", _)) => p.print_categories(),
+        Some(("edit", _)) => prompt_edit_category(&mut p).unwrap(),
+        Some(("list", _)) => p.print_categories(),
         Some(("print", args)) => {
             let id: u64 = args.get_one::<String>("ID").unwrap().parse().unwrap();
             print_single_category(&p, id);
@@ -51,6 +51,14 @@ pub(crate) fn prompt_remove_categories(
     for i in categories_to_remove {
         p.remove_category(i.id);
     }
+    Ok(())
+}
+
+pub(crate) fn prompt_edit_category(p: &mut Project) -> Result<(), inquire::error::InquireError> {
+    let categories = get_mod_list(p);
+    let category_to_edit = inquire::Select::new("Select category to edit", categories).prompt()?;
+    let new_name = inquire::Text::new("New name").prompt()?;
+    p.edit_category(category_to_edit.id, new_name.as_str());
     Ok(())
 }
 

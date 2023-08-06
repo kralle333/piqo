@@ -17,7 +17,7 @@ pub(crate) fn prompt_tasks(task_matches: &ArgMatches) -> Result<(), inquire::err
         Some(("assign", _)) => users::prompt_assign_users(&mut p)?,
         Some(("unassign", _)) => users::prompt_unassign_users(&mut p)?,
         Some(("move", _)) => prompt_move_tasks(&mut p)?,
-        // Some(("edit", _)) => p.edit_task()?,
+        Some(("edit", _)) => prompt_edit_task(&mut p)?,
         Some(("print", _)) => p.print_tasks(),
         Some(("print-task", args)) => {
             let id: u64 = args.get_one::<String>("ID").unwrap().parse().unwrap();
@@ -48,6 +48,27 @@ fn prompt_move_tasks(p: &mut Project) -> Result<(), inquire::error::InquireError
         p.move_task(task.id, selected_category.id);
     }
 
+    Ok(())
+}
+
+fn prompt_edit_task(p: &mut Project) -> Result<(), inquire::error::InquireError> {
+    let selected_task = Select::new("Select task:", get_mod_list(p))
+        .prompt()
+        .unwrap();
+    let selected_field = Select::new("Select field:", vec!["Name", "Description"])
+        .prompt()
+        .unwrap();
+    match selected_field {
+        "Name" => {
+            let new_name = inquire::Text::new("New name:").prompt()?;
+            p.edit_task_name(selected_task.id, new_name);
+        }
+        "Description" => {
+            let new_description = inquire::Editor::new("New description:").prompt()?;
+            p.edit_task_description(selected_task.id, new_description);
+        }
+        _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
+    }
     Ok(())
 }
 

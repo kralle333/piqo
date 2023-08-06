@@ -391,4 +391,30 @@ impl Project {
         }
         users
     }
+
+    pub(crate) fn print_categories(&self) {
+        self.categories.iter().for_each(|c| {
+            println!("{} | {}", c.id, c.name);
+        })
+    }
+
+    pub(crate) fn edit_category(&mut self, category_id: u64, new_name: &str) {
+        self.categories
+            .iter_mut()
+            .find(|c| c.id == category_id)
+            .unwrap()
+            .name = new_name.to_string();
+    }
+
+    pub(crate) fn edit_task_name(&mut self, id: u64, new_name: String) {
+        self.tasks.iter_mut().find(|t| t.id == id).unwrap().name = new_name;
+    }
+
+    pub(crate) fn edit_task_description(&mut self, id: u64, new_description: String) {
+        self.tasks
+            .iter_mut()
+            .find(|t| t.id == id)
+            .unwrap()
+            .description = new_description;
+    }
 }
