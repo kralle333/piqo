@@ -196,84 +196,59 @@ impl Project {
         let task = self.tasks.iter().find(|t| t.id == id);
 
         let width = 60;
-        let print_line_left = |s: &str| {
-            println!("|{}|", utils::left_align(s, width));
-        };
-        let print_line_centered = |s: &str| {
-            println!("|{}|", utils::center_align(s, width));
-        };
-        let print_divider = || {
-            println!("|{}|", "-".repeat(width));
-        };
 
         match task {
             Some(t) => {
-                print_divider();
-                print_line_centered(&t.name);
-                print_divider();
-                print_line_left(&t.description);
+                utils::print_divider(width);
+                utils::print_line_centered(&t.name, width);
+                utils::print_divider(width);
+                utils::print_line_left(&t.description, width);
 
-                println!("|{}|", "-".repeat(60));
-                println!("|{:<60}|", utils::center_align(&t.name, 60));
-                println!("|{}|", "-".repeat(60));
-                println!("|{}|", t.description);
-                println!("|{}|", "-".repeat(60));
-                println!(
-                    "|{}|",
-                    utils::left_align(
-                        &format!(
-                            "Category: {}",
-                            self.categories
-                                .iter()
-                                .find(|c| c.id == t.category)
-                                .unwrap()
-                                .name
-                        ),
-                        60
-                    )
+                utils::print_line_left(
+                    &format!(
+                        "Categories: {}",
+                        self.categories
+                            .iter()
+                            .find(|c| c.id == t.category)
+                            .unwrap()
+                            .name
+                    ),
+                    width,
                 );
 
                 let created_at =
                     chrono::NaiveDateTime::from_timestamp_opt(t.created_at_utc, 0).unwrap();
-                println!(
-                    "|{}|",
-                    &utils::left_align(
-                        &format!(
-                            "Created At: {}",
-                            chrono::DateTime::<chrono::Utc>::from_utc(
-                                created_at.to_owned(),
-                                chrono::Utc
-                            )
-                        ),
-                        60
-                    )
+
+                utils::print_line_left(
+                    &format!(
+                        "Created At: {}",
+                        chrono::DateTime::<chrono::Utc>::from_utc(
+                            created_at.to_owned(),
+                            chrono::Utc
+                        )
+                    ),
+                    60,
                 );
 
-                println!(
-                    "|{}|",
-                    &utils::left_align(
-                        &format!(
-                            "Updated At: {}",
-                            chrono::DateTime::<chrono::Utc>::from_utc(
-                                chrono::NaiveDateTime::from_timestamp_opt(t.updated_at_utc, 0)
-                                    .unwrap(),
-                                chrono::Utc
-                            )
-                        ),
-                        60
+                let modified_at = &format!(
+                    "Updated At: {}",
+                    chrono::DateTime::<chrono::Utc>::from_utc(
+                        chrono::NaiveDateTime::from_timestamp_opt(t.updated_at_utc, 0).unwrap(),
+                        chrono::Utc
                     )
                 );
+                utils::print_line_left(modified_at.as_str(), width);
 
                 if self.users.is_empty() {
-                    println!("No users assigned to task");
+                    utils::print_line_left("No users assigned to task", width);
                 } else {
-                    println!("Users assigned to task:");
-                    self.users
-                        .iter()
-                        .for_each(|u| println!("- {} | {}", u.id, u.name));
+                    utils::print_line_left("Users assigned to task:", width);
+                    self.users.iter().for_each(|u| {
+                        utils::print_line_left(&format!("- {} | {}", u.id, u.name), 60)
+                    });
                 }
 
-                println!("|{}|", "-".repeat(60));
+                utils::print_divider(width)
             }
             None => println!("Task with id {} not found", id),
         }

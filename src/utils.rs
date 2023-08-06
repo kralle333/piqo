@@ -25,14 +25,24 @@ pub fn truncate(s: &str, max_len: usize) -> String {
         s.to_owned()
     }
 }
-pub fn center_align(text: &str, column_width: usize) -> String {
-    let padding = (column_width - text.chars().count()) / 2;
+pub fn center_align(text: &str, width: usize) -> String {
+    let padding = (width - text.chars().count()) / 2;
     format!(
         "{:<width$}",
         format!("{}{}", " ".repeat(padding), text),
-        width = column_width
+        width = width
     )
 }
-pub fn left_align(text: &str, column_width: usize) -> String {
-    format!("{:<width$}", text, width = column_width)
+pub fn left_align(text: &str, width: usize) -> String {
+    format!("{:<width$}", text, width = width)
+}
+
+pub fn print_line_left(text: &str, width: usize) {
+    println!("|{}|", self::left_align(text, width));
+}
+pub fn print_line_centered(text: &str, width: usize) {
+    println!("|{}|", self::center_align(text, width));
+}
+pub fn print_divider(width: usize) {
+    println!("|{}|", "-".repeat(width));
 }
