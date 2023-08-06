@@ -25,6 +25,7 @@ pub(crate) fn prompt_tasks(task_matches: &ArgMatches) -> Result<(), inquire::err
         }
         _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     };
+    data_storage::store_project(&p)?;
     Ok(())
 }
 

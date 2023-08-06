@@ -20,6 +20,7 @@ pub(crate) fn prompt_categories(
         }
         _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     };
+    data_storage::store_project(&p)?;
     Ok(())
 }
 
