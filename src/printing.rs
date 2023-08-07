@@ -203,8 +203,8 @@ impl Project {
                 assigned_to: t
                     .assigned_to
                     .iter()
-                    .map(|i| self.get_user(*i).unwrap().name.to_owned())
-                    .collect::<Vec<String>>(),
+                    .map(|i| self.get_user(*i).unwrap())
+                    .collect::<Vec<crate::models::User>>(),
                 assigned_to_ids: t.assigned_to.to_owned(),
                 created_at_utc: NaiveDateTime::from_timestamp_opt(t.created_at_utc, 0)
                     .unwrap()

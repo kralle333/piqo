@@ -29,7 +29,7 @@ pub(crate) struct TaskJson {
     pub archieved_at_utc_unix: i64,
     pub archieved_at_utc: String,
     pub assigned_to_ids: Vec<u64>,
-    pub assigned_to: Vec<String>,
+    pub assigned_to: Vec<User>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -47,7 +47,7 @@ pub(crate) struct Category {
     pub name: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub(crate) struct User {
     pub id: u64,
     pub git_email: Option<String>,
@@ -179,11 +179,11 @@ impl Project {
         });
     }
 
-    pub(crate) fn get_user(&self, id: u64) -> Option<&User> {
-        self.users.iter().find(|u| u.id == id)
+    pub(crate) fn get_user(&self, id: u64) -> Option<User> {
+        self.users.iter().find(|u| u.id == id).map(|u| u.to_owned())
     }
 
-    pub(crate) fn get_assigned_users(&self, id: u64) -> Vec<&User> {
+    pub(crate) fn get_assigned_users(&self, id: u64) -> Vec<User> {
         let task = self.tasks.iter().find(|t| t.id == id).unwrap();
         let mut users = Vec::new();
         for user_id in &task.assigned_to {
