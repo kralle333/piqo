@@ -65,16 +65,16 @@ pub fn to_segments(s: &str, max_len: usize) -> Vec<String> {
     segments
 }
 
-fn create_printer(fields: Vec<i32>) -> String {
-    let sum: i32 = fields.iter().sum();
+// fn create_printer(fields: Vec<i32>) -> String {
+//     let sum: i32 = fields.iter().sum();
 
-    if sum > 80 {
-        panic!("too long fields")
-    }
+//     if sum + (fields.len() - 1) as i32 > 80 {
+//         panic!("too long fields")
+//     }
 
-    return fields
-        .iter()
-        .map(|f| format!("{{:<{}}}", f))
-        .collect::<Vec<String>>()
-        .join("|");
-}
+//     return fields
+//         .iter()
+//         .map(|f| format!("{{:<{}}}", f))
+//         .collect::<Vec<String>>()
+//         .join(" ");
+// }

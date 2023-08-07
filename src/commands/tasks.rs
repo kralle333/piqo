@@ -32,11 +32,11 @@ pub(crate) fn prompt_tasks(task_matches: &ArgMatches) -> Result<(), inquire::err
 }
 
 pub(crate) fn get_tasks_list(p: &Project) -> Vec<TaskItem> {
-    p.tasks()
+    p.tasks
         .iter()
         .map(|t| TaskItem {
-            id: t.id(),
-            name: t.name().to_owned(),
+            id: t.id,
+            name: t.name.to_owned(),
         })
         .collect::<Vec<TaskItem>>()
 }

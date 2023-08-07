@@ -32,9 +32,9 @@ pub(crate) fn prompt_users(sub_matches: &ArgMatches) -> Result<(), inquire::erro
 fn prompt_list(p: &mut Project) {
     let users = p.get_users();
     for ele in users {
-        match ele.git_email() {
-            Some(email) => println!("{} <{}>", ele.name(), email),
-            None => println!("{} <No email>", ele.name()),
+        match &ele.git_email {
+            Some(email) => println!("{} <{}>", ele.name, email),
+            None => println!("{} <No email>", ele.name),
         }
     }
 }
@@ -51,8 +51,8 @@ fn get_users_mod_list(p: &Project) -> Vec<User> {
     p.get_users()
         .iter()
         .map(|u| User {
-            id: u.id(),
-            name: u.name().to_string(),
+            id: u.id,
+            name: u.name.to_string(),
             git_email: u.git_email.to_owned(),
         })
         .collect()
@@ -62,8 +62,8 @@ fn get_users_assigned_mod_list(p: &Project, task_id: u64) -> Vec<User> {
     p.get_assigned_users(task_id)
         .iter()
         .map(|u| User {
-            id: u.id(),
-            name: u.name().to_string(),
+            id: u.id,
+            name: u.name.to_string(),
             git_email: u.git_email.to_owned(),
         })
         .collect()
@@ -82,7 +82,7 @@ pub(crate) fn prompt_assign_users(p: &mut Project) -> Result<(), inquire::error:
         MultiSelect::new("Select Users To Assign", get_users_mod_list(p)).prompt()?;
 
     for user in users_to_assign {
-        p.assign_task(user.id(), selected_task.id);
+        p.assign_task(user.id, selected_task.id);
     }
     Ok(())
 }
@@ -107,7 +107,7 @@ pub(crate) fn prompt_unassign_users(p: &mut Project) -> Result<(), inquire::erro
     let users_to_unassign = MultiSelect::new("Select Users To Unassign", assigned).prompt()?;
 
     for user in users_to_unassign {
-        p.unassign_task(user.id(), selected_task.id);
+        p.unassign_task(user.id, selected_task.id);
     }
     Ok(())
 }

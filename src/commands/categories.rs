@@ -1,5 +1,5 @@
 use clap::ArgMatches;
-use inquire::MultiSelect;
+use inquire::{MultiSelect, Select};
 
 use crate::{data_storage, models::Project};
 
@@ -14,19 +14,15 @@ pub(crate) fn prompt_categories(
         Some(("remove", _)) => prompt_remove_categories(&mut p).unwrap(),
         Some(("edit", _)) => prompt_edit_category(&mut p).unwrap(),
         Some(("list", _)) => p.print_categories(),
-        Some(("print", args)) => {
-            let id: u64 = args.get_one::<String>("ID").unwrap().parse().unwrap();
-            print_single_category(&p, id);
+        Some(("print", _)) => {
+            let selected = Select::new("Select category:", get_categories_list(&p)).prompt()?;
+
+            p.print_category(selected.id);
         }
         _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     };
     data_storage::store_project(&p)?;
     Ok(())
-}
-
-fn print_single_category(p: &Project, id: u64) {
-    let category = p.get_category(id).unwrap();
-    println!("{}", category.name());
 }
 
 pub(crate) fn prompt_create_categories(
@@ -64,11 +60,13 @@ pub(crate) fn prompt_edit_category(p: &mut Project) -> Result<(), inquire::error
 }
 
 pub(crate) fn get_categories_list(p: &Project) -> Vec<CategoryItem> {
-    p.categories()
+    p.categories
         .iter()
-        .map(|t| CategoryItem {
-            id: *t.id(),
-            name: t.name().to_owned(),
+        .map(|t| -> CategoryItem {
+            CategoryItem {
+                id: t.id,
+                name: t.name.to_owned(),
+            }
         })
         .collect::<Vec<CategoryItem>>()
 }

@@ -1,5 +1,5 @@
 use crate::commands::categories::prompt_create_categories;
-use clap::{command, Command};
+use clap::{command, Arg, ArgAction, Command};
 
 use crate::{data_storage, models::Project};
 
@@ -14,15 +14,26 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
         .subcommand_required(true)
         .arg_required_else_help(true)
         .subcommand(Command::new("init").about("Initializes new project"))
-        .subcommand(Command::new("status").about("Prints status of the project"))
         .subcommand(
-            Command::new("categories")
-                .arg_required_else_help(true)
-                .about("Alter categoris of the project")
-                .subcommand(Command::new("add").about("Adds new category"))
-                .subcommand(Command::new("remove").about("Removes category"))
-                .subcommand(Command::new("edit").about("Edits category"))
-                .subcommand(Command::new("list").about("Prints categories")), // .subcommand(Command::new("print").about("Prints details of one category")),
+            Command::new("list").about("Lists project tasks").arg(
+                Arg::new("json")
+                    .long("json")
+                    .action(ArgAction::SetTrue)
+                    .help("output in json format"),
+            ),
+        )
+        .subcommand(
+            Command::new("status")
+                .about("Prints your status")
+                .subcommand(
+                    Command::new("categories")
+                        .arg_required_else_help(true)
+                        .about("Alter categoris of the project")
+                        .subcommand(Command::new("add").about("Adds new category"))
+                        .subcommand(Command::new("remove").about("Removes category"))
+                        .subcommand(Command::new("edit").about("Edits category"))
+                        .subcommand(Command::new("list").about("Prints categories")),
+                ), // .subcommand(Command::new("print").about("Prints details of one category")),
         )
         .subcommand(
             Command::new("tasks")
@@ -53,7 +64,16 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
         Some(("init", _)) => init()?,
         Some(("status", _)) => {
             let p = data_storage::load_project()?;
-            p.print_status()
+            // p.print_status()
+        }
+        Some(("list", sync_matches)) => {
+            let p = data_storage::load_project()?;
+
+            if sync_matches.get_flag("json") {
+                p.print_tasks_json();
+            } else {
+                p.print_tasks();
+            }
         }
         Some(("categories", sub_matches)) => categories::prompt_categories(sub_matches)?,
         Some(("tasks", sub_matches)) => tasks::prompt_tasks(sub_matches)?,

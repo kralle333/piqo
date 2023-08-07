@@ -72,3 +72,7 @@ pub(crate) fn load_project() -> Result<Project, std::io::Error> {
     let p: Project = serde_json::from_reader(rdr)?;
     Ok(p)
 }
+
+pub(crate) fn get_user_email() -> Option<String> {
+    None
+}
