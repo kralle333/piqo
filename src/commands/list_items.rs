@@ -7,7 +7,7 @@ pub struct TaskItem {
 
 impl Display for TaskItem {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{} | {}", self.id, self.name)
+        write!(f, "{}", self.name)
     }
 }
 
@@ -18,7 +18,7 @@ pub struct CategoryItem {
 
 impl Display for CategoryItem {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{} | {}", self.id, self.name)
+        write!(f, "{}", self.name)
     }
 }
 
@@ -29,6 +29,6 @@ pub struct UserItem {
 
 impl Display for UserItem {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{} | {}", self.name, self.git_email)
+        write!(f, "{} <{}>", self.name, self.git_email)
     }
 }

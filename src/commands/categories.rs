@@ -46,7 +46,7 @@ pub(crate) fn prompt_create_categories(
 pub(crate) fn prompt_remove_categories(
     p: &mut Project,
 ) -> Result<(), inquire::error::InquireError> {
-    let categories = get_mod_list(p);
+    let categories = get_categories_list(p);
     let categories_to_remove =
         MultiSelect::new("Select categories to remove", categories).prompt()?;
     for i in categories_to_remove {
@@ -56,14 +56,14 @@ pub(crate) fn prompt_remove_categories(
 }
 
 pub(crate) fn prompt_edit_category(p: &mut Project) -> Result<(), inquire::error::InquireError> {
-    let categories = get_mod_list(p);
+    let categories = get_categories_list(p);
     let category_to_edit = inquire::Select::new("Select category to edit", categories).prompt()?;
     let new_name = inquire::Text::new("New name").prompt()?;
     p.edit_category(category_to_edit.id, new_name.as_str());
     Ok(())
 }
 
-pub(crate) fn get_mod_list(p: &Project) -> Vec<CategoryItem> {
+pub(crate) fn get_categories_list(p: &Project) -> Vec<CategoryItem> {
     p.categories()
         .iter()
         .map(|t| CategoryItem {

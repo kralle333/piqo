@@ -5,7 +5,7 @@ use inquire::{MultiSelect, Select};
 use super::super::data_storage;
 use super::super::models::Project;
 
-use super::categories::get_mod_list;
+use super::categories::get_categories_list;
 use super::list_items::TaskItem;
 use super::{categories, users};
 
@@ -18,10 +18,12 @@ pub(crate) fn prompt_tasks(task_matches: &ArgMatches) -> Result<(), inquire::err
         Some(("unassign", _)) => users::prompt_unassign_users(&mut p)?,
         Some(("move", _)) => prompt_move_tasks(&mut p)?,
         Some(("edit", _)) => prompt_edit_task(&mut p)?,
-        Some(("print", _)) => p.print_tasks(),
-        Some(("print-task", args)) => {
-            let id: u64 = args.get_one::<String>("ID").unwrap().parse().unwrap();
-            p.print_single_task(id);
+        Some(("list", _)) => p.print_tasks(),
+        Some(("print", _)) => {
+            let selected_task = Select::new("Select task:", get_tasks_list(&p))
+                .prompt()
+                .unwrap();
+            p.print_single_task(selected_task.id);
         }
         _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     };
@@ -29,7 +31,7 @@ pub(crate) fn prompt_tasks(task_matches: &ArgMatches) -> Result<(), inquire::err
     Ok(())
 }
 
-pub(crate) fn get_tasks_mod_list(p: &Project) -> Vec<TaskItem> {
+pub(crate) fn get_tasks_list(p: &Project) -> Vec<TaskItem> {
     p.tasks()
         .iter()
         .map(|t| TaskItem {
@@ -40,10 +42,11 @@ pub(crate) fn get_tasks_mod_list(p: &Project) -> Vec<TaskItem> {
 }
 
 fn prompt_move_tasks(p: &mut Project) -> Result<(), inquire::error::InquireError> {
-    let selected_tasks = MultiSelect::new("Select tasks to move:", get_mod_list(p)).prompt()?;
+    let selected_tasks =
+        MultiSelect::new("Select tasks to move:", get_categories_list(p)).prompt()?;
 
     let selected_category =
-        Select::new("Select category:", categories::get_mod_list(p)).prompt()?;
+        Select::new("Select category:", categories::get_categories_list(p)).prompt()?;
 
     for task in selected_tasks {
         p.move_task(task.id, selected_category.id);
@@ -53,7 +56,7 @@ fn prompt_move_tasks(p: &mut Project) -> Result<(), inquire::error::InquireError
 }
 
 fn prompt_edit_task(p: &mut Project) -> Result<(), inquire::error::InquireError> {
-    let selected_task = Select::new("Select task:", get_mod_list(p))
+    let selected_task = Select::new("Select task:", get_categories_list(p))
         .prompt()
         .unwrap();
     let selected_field = Select::new("Select field:", vec!["Name", "Description"])
@@ -75,7 +78,7 @@ fn prompt_edit_task(p: &mut Project) -> Result<(), inquire::error::InquireError>
 
 fn prompt_archieve_tasks(p: &mut Project) -> Result<(), inquire::error::InquireError> {
     let selected_tasks =
-        MultiSelect::new("Select tasks to archieve:", get_tasks_mod_list(p)).prompt()?;
+        MultiSelect::new("Select tasks to archieve:", get_tasks_list(p)).prompt()?;
 
     for task in selected_tasks {
         p.archieve_task(task.id);

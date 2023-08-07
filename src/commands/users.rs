@@ -33,8 +33,8 @@ fn prompt_list(p: &mut Project) {
     let users = p.get_users();
     for ele in users {
         match ele.git_email() {
-            Some(email) => println!("{} | {} | {}", ele.id(), ele.name(), email),
-            None => println!("{} | {} | No email", ele.id(), ele.name()),
+            Some(email) => println!("{} <{}>", ele.name(), email),
+            None => println!("{} <No email>", ele.name()),
         }
     }
 }
@@ -70,7 +70,7 @@ fn get_users_assigned_mod_list(p: &Project, task_id: u64) -> Vec<User> {
 }
 
 pub(crate) fn prompt_assign_users(p: &mut Project) -> Result<(), inquire::error::InquireError> {
-    let tasks_mod_list = tasks::get_tasks_mod_list(p);
+    let tasks_mod_list = tasks::get_tasks_list(p);
     if tasks_mod_list.is_empty() {
         println!("No tasks to assign");
         return Ok(());
@@ -88,7 +88,7 @@ pub(crate) fn prompt_assign_users(p: &mut Project) -> Result<(), inquire::error:
 }
 
 pub(crate) fn prompt_unassign_users(p: &mut Project) -> Result<(), inquire::error::InquireError> {
-    let tasks_mod_list = tasks::get_tasks_mod_list(p);
+    let tasks_mod_list = tasks::get_tasks_list(p);
 
     if tasks_mod_list.is_empty() {
         println!("No tasks to unassign");
@@ -112,7 +112,9 @@ pub(crate) fn prompt_unassign_users(p: &mut Project) -> Result<(), inquire::erro
     Ok(())
 }
 
-fn prompt_add_users(p: &mut crate::models::Project) -> Result<(), inquire::error::InquireError> {
+pub(crate) fn prompt_add_users(
+    p: &mut crate::models::Project,
+) -> Result<(), inquire::error::InquireError> {
     let option_a = "Scrape Git Users";
     let option_b = "Add user manually";
     let selections = vec![option_a, option_b];
@@ -153,7 +155,7 @@ fn prompt_add_users(p: &mut crate::models::Project) -> Result<(), inquire::error
             Ok(())
         }
         "Add user manually" => {
-            prompt_create_users(p)?;
+            prompt_create_users_manually(p)?;
 
             data_storage::store_project(p)?;
             Ok(())
@@ -171,7 +173,7 @@ fn prompt_remove_users(p: &mut Project) -> Result<(), inquire::error::InquireErr
     Ok(())
 }
 
-fn prompt_create_user(p: &mut Project) -> Result<(), inquire::error::InquireError> {
+fn prompt_create_user_manually(p: &mut Project) -> Result<(), inquire::error::InquireError> {
     let name = inquire::Text::new("Name:").prompt()?;
     let email = inquire::Text::new("Email:").prompt()?;
 
@@ -179,13 +181,15 @@ fn prompt_create_user(p: &mut Project) -> Result<(), inquire::error::InquireErro
     Ok(())
 }
 
-pub(crate) fn prompt_create_users(p: &mut Project) -> Result<(), inquire::error::InquireError> {
-    prompt_create_user(p)?;
+pub(crate) fn prompt_create_users_manually(
+    p: &mut Project,
+) -> Result<(), inquire::error::InquireError> {
+    prompt_create_user_manually(p)?;
     loop {
         let create_more = inquire::Select::new("Create more users?", vec!["Yes", "No"]).prompt()?;
         if create_more == "No" {
             return Ok(());
         }
-        prompt_create_user(p)?;
+        prompt_create_user_manually(p)?;
     }
 }

@@ -19,8 +19,8 @@ pub fn get_unused_id(current_ids: Vec<u64>) -> u64 {
 }
 
 pub fn truncate(s: &str, max_len: usize) -> String {
-    if s.chars().count() > max_len - 3 {
-        format!("{}...", &s[..max_len - 3])
+    if s.chars().count() > max_len - 1 {
+        format!("{}…", &s[..max_len - 1])
     } else {
         s.to_owned()
     }
@@ -45,4 +45,36 @@ pub fn print_line_centered(text: &str, width: usize) {
 }
 pub fn print_divider(width: usize) {
     println!("|{}|", "-".repeat(width));
+}
+
+pub fn to_segments(s: &str, max_len: usize) -> Vec<String> {
+    let mut segments = Vec::new();
+    let mut current_segment = String::new();
+    let mut current_len = 0;
+
+    for word in s.split_whitespace() {
+        if current_len + word.chars().count() + 1 > max_len {
+            segments.push(current_segment);
+            current_segment = String::new();
+            current_len = 0;
+        }
+        current_segment.push_str(&format!("{} ", word));
+        current_len += word.chars().count() + 1;
+    }
+    segments.push(current_segment);
+    segments
+}
+
+fn create_printer(fields: Vec<i32>) -> String {
+    let sum: i32 = fields.iter().sum();
+
+    if sum > 80 {
+        panic!("too long fields")
+    }
+
+    return fields
+        .iter()
+        .map(|f| format!("{{:<{}}}", f))
+        .collect::<Vec<String>>()
+        .join("|");
 }
