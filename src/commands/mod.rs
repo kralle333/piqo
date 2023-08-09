@@ -22,19 +22,16 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
                     .help("output in json format"),
             ),
         )
+        .subcommand(Command::new("status").about("Prints status of project"))
         .subcommand(
-            Command::new("status")
-                .about("Prints your status")
-                .subcommand(
-                    Command::new("categories")
-                        .arg_required_else_help(true)
-                        .about("Alter categoris of the project")
-                        .subcommand(Command::new("add").about("Adds new category"))
-                        .subcommand(Command::new("remove").about("Removes category"))
-                        .subcommand(Command::new("edit").about("Edits category"))
-                        .subcommand(Command::new("list").about("Prints categories")),
-                ), // .subcommand(Command::new("print").about("Prints details of one category")),
-        )
+            Command::new("categories")
+                .arg_required_else_help(true)
+                .about("Alter categoris of the project")
+                .subcommand(Command::new("add").about("Adds new category"))
+                .subcommand(Command::new("remove").about("Removes category"))
+                .subcommand(Command::new("edit").about("Edits category"))
+                .subcommand(Command::new("list").about("Prints categories")),
+        ) // .subcommand(Command::new("print").about("Prints details of one category")),
         .subcommand(
             Command::new("tasks")
                 .subcommand_required(true)
@@ -64,6 +61,7 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
         Some(("init", _)) => init()?,
         Some(("status", _)) => {
             let p = data_storage::load_project()?;
+            p.print_status();
             // p.print_status()
         }
         Some(("list", sync_matches)) => {

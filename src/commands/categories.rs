@@ -25,6 +25,12 @@ pub(crate) fn prompt_categories(
     Ok(())
 }
 
+pub(crate) fn prompt_create_category(p: &mut Project) -> Result<(), inquire::error::InquireError> {
+    let status_name = inquire::Text::new("Category name").prompt()?;
+    p.add_category(status_name.as_str());
+    Ok(())
+}
+
 pub(crate) fn prompt_create_categories(
     p: &mut Project,
 ) -> Result<(), inquire::error::InquireError> {
@@ -34,8 +40,7 @@ pub(crate) fn prompt_create_categories(
         if create_more == "No" {
             return Ok(());
         }
-        let status_name = inquire::Text::new("Category name").prompt()?;
-        p.add_category(status_name.as_str());
+        prompt_create_category(p)?
     }
 }
 

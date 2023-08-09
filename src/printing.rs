@@ -64,7 +64,7 @@ impl Project {
     pub(crate) fn print_single_task(&self, id: u64) {
         let task = self.tasks.iter().find(|t| t.id == id);
 
-        let width = 80;
+        let width = 60;
 
         match task {
             Some(t) => {
@@ -72,11 +72,13 @@ impl Project {
                 utils::print_line_centered(&t.name, width);
                 utils::print_divider(width);
 
-                for segment in utils::to_segments(&t.description, width - 2).iter() {
-                    utils::print_line_left(segment, width);
-                }
+                if !t.description.is_empty() {
+                    for segment in utils::to_segments(&t.description, width - 2).iter() {
+                        utils::print_line_left(segment, width);
+                    }
 
-                utils::print_divider(width);
+                    utils::print_divider(width);
+                }
                 utils::print_line_left(
                     &format!(
                         "Categories: {}",
@@ -88,7 +90,6 @@ impl Project {
                     ),
                     width,
                 );
-
                 let created_at =
                     chrono::NaiveDateTime::from_timestamp_opt(t.created_at_utc, 0).unwrap();
 
@@ -233,5 +234,12 @@ impl Project {
 
     pub(crate) fn print_categories(&self) {
         self.categories.iter().for_each(|c| println!("{}", c.name));
+    }
+
+    pub(crate) fn print_status(&self) {
+        self.tasks.iter().for_each(|t| {
+            self.print_single_task(t.id);
+            println!()
+        });
     }
 }
