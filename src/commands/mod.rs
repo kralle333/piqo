@@ -1,5 +1,8 @@
+use std::env;
+
 use crate::commands::categories::prompt_create_categories;
 use clap::{command, Arg, ArgAction, Command};
+use owo_colors::OwoColorize;
 
 use crate::{data_storage, models::Project};
 
@@ -101,9 +104,20 @@ fn init() -> Result<(), inquire::error::InquireError> {
             return Err(inquire::InquireError::Custom(err.into()));
         }
     }
-
+    let initial_project_name = match env::current_dir() {
+        Ok(path) => path
+            .iter()
+            .last()
+            .unwrap()
+            .to_os_string()
+            .into_string()
+            .unwrap(),
+        Err(_) => "".to_string(),
+    };
     // check if is git repo and if not, init
-    let name = inquire::Text::new("Project name").prompt()?;
+    let name = inquire::Text::new("Project name:")
+        .with_initial_value(&initial_project_name)
+        .prompt()?;
 
     let mut p = Project::new(name);
 

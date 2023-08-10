@@ -188,7 +188,7 @@ impl Project {
                     "{:<20}|{:<30}|{:<20}",
                     t(&task.name, 20),
                     t(&task.description, 30),
-                    l(&assigned_to_string, 20),
+                    c(&assigned_to_string, 20),
                 );
             }
             println!();
