@@ -27,6 +27,10 @@ pub(crate) fn prompt_categories(
 
 pub(crate) fn prompt_create_category(p: &mut Project) -> Result<(), inquire::error::InquireError> {
     let status_name = inquire::Text::new("Category name").prompt()?;
+    if p.categories.iter().any(|c| c.name == status_name) {
+        println!("Category with this name already exists");
+        return Err(inquire::error::InquireError::OperationCanceled);
+    }
     p.add_category(status_name.as_str());
     Ok(())
 }
@@ -34,6 +38,7 @@ pub(crate) fn prompt_create_category(p: &mut Project) -> Result<(), inquire::err
 pub(crate) fn prompt_create_categories(
     p: &mut Project,
 ) -> Result<(), inquire::error::InquireError> {
+    prompt_create_category(p)?;
     loop {
         let create_more =
             inquire::Select::new("Create more categories?", vec!["Yes", "No"]).prompt()?;
@@ -48,8 +53,23 @@ pub(crate) fn prompt_remove_categories(
     p: &mut Project,
 ) -> Result<(), inquire::error::InquireError> {
     let categories = get_categories_list(p);
-    let categories_to_remove =
-        MultiSelect::new("Select categories to remove", categories).prompt()?;
+
+    let not_deletable: Vec<&CategoryItem> = categories.iter().filter(|c| c.not_deletable).collect();
+    if !not_deletable.is_empty() {
+        println!("The following categories are not deletable because they are assigned to tasks:");
+        for category in &not_deletable {
+            if category.not_deletable {
+                println!("{}", category.name);
+            }
+        }
+    }
+
+    let categories_to_remove = MultiSelect::new(
+        "Select categories to remove",
+        categories.iter().filter(|c| !c.not_deletable).collect(),
+    )
+    .prompt()?;
+
     for i in categories_to_remove {
         p.remove_category(i.id);
     }
@@ -71,6 +91,7 @@ pub(crate) fn get_categories_list(p: &Project) -> Vec<CategoryItem> {
             CategoryItem {
                 id: t.id,
                 name: t.name.to_owned(),
+                not_deletable: p.tasks.iter().any(|task| task.assigned_to.contains(&t.id)),
             }
         })
         .collect::<Vec<CategoryItem>>()

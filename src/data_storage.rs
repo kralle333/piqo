@@ -5,6 +5,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use owo_colors::OwoColorize;
+
 use crate::models;
 
 pub enum CrabdPath {
@@ -62,9 +64,19 @@ pub(crate) fn load_project() -> Result<Project, std::io::Error> {
                     "Unable to load project, .cradb file could not be found: {}",
                     err
                 ),
-            ))
+            ));
         }
-        CrabdPath::FoundNotInit(path) | CrabdPath::Found(path) => Some(path),
+        CrabdPath::Found(path) => Some(path),
+        CrabdPath::FoundNotInit(path) => {
+            return Err(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!(
+                    "Unable to load project, .cradb file could not be found: {:?} - {} ",
+                    path,
+                    "try running `crabd init`".green(),
+                ),
+            ));
+        }
     };
 
     let file = File::open(path.unwrap())?;

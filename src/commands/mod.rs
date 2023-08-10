@@ -61,7 +61,7 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
         Some(("init", _)) => init()?,
         Some(("status", _)) => {
             let p = data_storage::load_project()?;
-            p.print_status();
+            p.print_status()
             // p.print_status()
         }
         Some(("list", sync_matches)) => {
@@ -87,6 +87,7 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
 fn init() -> Result<(), inquire::error::InquireError> {
     let crabd_path = data_storage::check_crabd_dir();
 
+    println!("crabd_path: ");
     match crabd_path {
         data_storage::CrabdPath::FoundNotInit(crabd_path) => {
             println!("Initializing project at: {}", crabd_path.to_str().unwrap());

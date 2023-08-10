@@ -140,8 +140,8 @@ pub(crate) fn prompt_add_users(
             let split_one = unique_dict
                 .iter()
                 .map(|(email, name)| UserItem {
-                    name: name.to_string(),
-                    git_email: email.to_string(),
+                    name: name.trim().replace('\"', "").to_string(),
+                    git_email: email.trim().replace('\"', "").to_string(),
                 })
                 .collect::<Vec<UserItem>>();
 

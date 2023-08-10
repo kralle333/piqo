@@ -1,0 +1,19 @@
+Status for Project: Crabd
+
+[32mTodo:[0m
+========
+
+[1m        Name        [0m|[1m         Description          [0m| [1m    Assigned to     [0m
+--------------------------------------------------------------------------
+Test tasks          |                              |Kristian            
+Test categories     |                              |Kristian            
+Test users          |                              |Kristian            
+
+[32mIn Progress:[0m
+======================
+No tasks in this category
+
+[32mDone:[0m
+========
+No tasks in this category
+

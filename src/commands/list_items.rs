@@ -14,11 +14,16 @@ impl Display for TaskItem {
 pub struct CategoryItem {
     pub id: u64,
     pub name: String,
+    pub not_deletable: bool,
 }
 
 impl Display for CategoryItem {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.name)
+        if self.not_deletable {
+            write!(f, "{} (not deletable - has tasks)", self.name)
+        } else {
+            write!(f, "{}", self.name)
+        }
     }
 }
 
