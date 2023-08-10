@@ -22,19 +22,13 @@ impl Project {
             user_names.insert(&user.id, &user.name);
         }
 
-        let l = vec![15, 30, 12, 20];
+        let l = vec![36, 0, 12, 30];
 
         let header_0 = &c("Name", l[0]).bold().to_string();
-        let header_1 = &c("Description", l[1]);
+        // let header_1 = &c("Description", l[1]);
         let header_2 = &c("Category", l[2]).bold().to_string();
         let header_3 = &c("Assigned To", l[3]).bold().to_string();
-        println!(
-            "{:<15} {:<30} {:<12} {:<20}",
-            &t(header_0, l[0]),
-            &t(header_1, l[1]),
-            &t(header_2, l[2]),
-            &t(header_3, l[3])
-        );
+        println!("{:<36}|{:<12}|{:<30}", header_0, header_2, header_3,);
 
         println!("{}", "-".repeat(80));
 
@@ -50,11 +44,14 @@ impl Project {
             };
 
             println!(
-                "{:<15}|{:<30}|{:<12}|{:<20}",
+                "{:<36}|{:<12}|{:<30}",
                 &t(&task.name, l[0]),
-                &t(&task.description, l[1]),
-                &t(
-                    &self.get_category(task.category).unwrap().name.to_string(),
+                // &t(&task.description, l[1]),
+                &c(
+                    &t(
+                        &self.get_category(task.category).unwrap().name.to_string(),
+                        l[2]
+                    ),
                     l[2]
                 ),
                 &t(&assigned_to, l[3])
