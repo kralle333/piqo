@@ -2,7 +2,7 @@ use chrono::NaiveDateTime;
 use owo_colors::OwoColorize;
 use std::collections::HashMap;
 
-use crate::models::TaskJson;
+use crate::models::{TaskJson, User};
 use crate::utils::truncate as t;
 use crate::utils::{self, left_align as l};
 use crate::{models::Project, utils::center_align as c};
@@ -33,13 +33,23 @@ impl Project {
         println!("{}", "-".repeat(80));
 
         tasks.iter().for_each(|task| {
+            let users = task
+                .assigned_to
+                .iter()
+                .map(|i| self.get_user(*i).unwrap())
+                .collect::<Vec<User>>();
+
             let assigned_to = match task.assigned_to.is_empty() {
-                false => task
-                    .assigned_to
-                    .iter()
-                    .map(|i| t(&self.get_user(*i).unwrap().name, 10))
-                    .collect::<Vec<String>>()
-                    .join(", "),
+                false => {
+                    let total_space = l[3] - (users.len() - 1);
+                    let space_per_name = total_space / users.len();
+                    users
+                        .iter()
+                        .map(|f| t(user_names.get(&f.id).unwrap(), space_per_name))
+                        .collect::<Vec<String>>()
+                        .join(",")
+                }
+
                 true => "None".to_string(),
             };
 
