@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use clap::ArgMatches;
 use inquire::{MultiSelect, Select};
+use owo_colors::OwoColorize;
 
 use crate::{
     data_storage,
@@ -73,8 +74,12 @@ pub(crate) fn prompt_select_user_to_assign(
     p: &mut Project,
     task_id: u64,
 ) -> Result<(), inquire::error::InquireError> {
-    let users_to_assign =
-        MultiSelect::new("Select Users To Assign", get_users_mod_list(p)).prompt()?;
+    let users = get_users_mod_list(p);
+    if users.is_empty() {
+        return Ok(());
+    }
+
+    let users_to_assign = MultiSelect::new("Select users uo ussign", users).prompt()?;
 
     for user in users_to_assign {
         p.assign_task(user.id, task_id);
@@ -84,11 +89,13 @@ pub(crate) fn prompt_select_user_to_assign(
 pub(crate) fn prompt_assign_users(p: &mut Project) -> Result<(), inquire::error::InquireError> {
     let tasks_mod_list = tasks::get_tasks_list(p);
     if tasks_mod_list.is_empty() {
-        println!("No tasks to assign");
+        let msg = "No tasks to assign".red();
+        println!("{}", msg.to_string().as_str());
         return Ok(());
     }
 
-    let selected_task = Select::new("Select Task To Assign", tasks_mod_list).prompt()?;
+    //TODO: do it the other way around
+    let selected_task = Select::new("Select task to assign", tasks_mod_list).prompt()?;
     prompt_select_user_to_assign(p, selected_task.id)
 }
 
@@ -120,13 +127,13 @@ pub(crate) fn prompt_unassign_users(p: &mut Project) -> Result<(), inquire::erro
 pub(crate) fn prompt_add_users(
     p: &mut crate::models::Project,
 ) -> Result<(), inquire::error::InquireError> {
-    let option_a = "Scrape Git Users";
+    let option_a = "Scrape git users";
     let option_b = "Add user manually";
     let selections = vec![option_a, option_b];
 
     let choice = Select::new("Choose:", selections).prompt()?;
     match choice {
-        "Scrape Git Users" => {
+        "Scrape git users" => {
             let output = std::process::Command::new("git")
                 .arg("log")
                 .arg("--format=\"%an | %aE\" | sort -u")
@@ -150,7 +157,7 @@ pub(crate) fn prompt_add_users(
                 })
                 .collect::<Vec<UserItem>>();
 
-            let choices = MultiSelect::new("Select Users To Add", split_one).prompt()?;
+            let choices = MultiSelect::new("Select users to add", split_one).prompt()?;
 
             for ele in choices {
                 p.add_user(&ele.name, &ele.git_email);
@@ -170,7 +177,7 @@ pub(crate) fn prompt_add_users(
 }
 fn prompt_remove_users(p: &mut Project) -> Result<(), inquire::error::InquireError> {
     let users_to_remove =
-        MultiSelect::new("Select Users To Remove", get_users_mod_list(p)).prompt()?;
+        MultiSelect::new("Select users to remove", get_users_mod_list(p)).prompt()?;
 
     for ele in users_to_remove {
         p.remove_user(&ele);

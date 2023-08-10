@@ -212,4 +212,8 @@ impl Project {
             .unwrap()
             .description = new_description;
     }
+
+    pub(crate) fn remove_task(&mut self, id: u64) {
+        self.tasks.retain(|t| t.id != id)
+    }
 }

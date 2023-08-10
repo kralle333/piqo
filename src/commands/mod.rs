@@ -30,7 +30,6 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
             Command::new("categories")
                 .arg_required_else_help(true)
                 .about("Alter categoris of the project")
-                .subcommand(Command::new("add").about("Adds new category"))
                 .subcommand(Command::new("remove").about("Removes category"))
                 .subcommand(Command::new("edit").about("Edits category"))
                 .subcommand(Command::new("list").about("Prints categories")),
@@ -104,6 +103,7 @@ fn init() -> Result<(), inquire::error::InquireError> {
             return Err(inquire::InquireError::Custom(err.into()));
         }
     }
+    let a = "lol".green();
     let initial_project_name = match env::current_dir() {
         Ok(path) => path
             .iter()
@@ -133,14 +133,12 @@ fn init() -> Result<(), inquire::error::InquireError> {
         prompt_create_categories(&mut p)?;
     }
 
-    let create_tasks = inquire::Select::new("Create initial tasks?", vec!["Yes", "No"]).prompt()?;
-    if create_tasks == "Yes" {
-        tasks::prompt_create_tasks(&mut p)?;
+    if inquire::Confirm::new("Create initial users?").prompt()? {
+        users::prompt_add_users(&mut p)?;
     }
 
-    let create_users = inquire::Select::new("Create initial users?", vec!["Yes", "No"]).prompt()?;
-    if create_users == "Yes" {
-        users::prompt_add_users(&mut p)?;
+    if inquire::Confirm::new("Create initial tasks?").prompt()? {
+        tasks::prompt_create_tasks(&mut p)?;
     }
 
     data_storage::store_project(&p)?;

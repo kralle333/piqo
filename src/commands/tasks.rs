@@ -5,9 +5,7 @@ use inquire::{MultiSelect, Select};
 use super::super::data_storage;
 use super::super::models::Project;
 
-use super::categories::get_categories_list;
 use super::list_items::TaskItem;
-use super::users::prompt_assign_users;
 use super::{categories, users};
 
 pub(crate) fn prompt_tasks(task_matches: &ArgMatches) -> Result<(), inquire::error::InquireError> {
@@ -20,6 +18,7 @@ pub(crate) fn prompt_tasks(task_matches: &ArgMatches) -> Result<(), inquire::err
         Some(("move", _)) => prompt_move_tasks(&mut p)?,
         Some(("edit", _)) => prompt_edit_task(&mut p)?,
         Some(("list", _)) => p.print_tasks(),
+        Some(("remove", _)) => prompt_remove_tasks(&mut p)?,
         Some(("print", _)) => {
             let selected_task = Select::new("Select task:", get_tasks_list(&p))
                 .prompt()
@@ -29,6 +28,27 @@ pub(crate) fn prompt_tasks(task_matches: &ArgMatches) -> Result<(), inquire::err
         _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     };
     data_storage::store_project(&p)?;
+    Ok(())
+}
+
+fn prompt_remove_tasks(p: &mut Project) -> Result<(), inquire::error::InquireError> {
+    let selected_tasks = MultiSelect::new("Select tasks to remove:", get_tasks_list(p)).prompt()?;
+
+    for task in selected_tasks {
+        let assigned_users = p.get_assigned_users(task.id);
+        let remove =
+            inquire::Confirm::new(&format!("Confirm deletion of task {}", task.name)).prompt()?;
+
+        if !remove {
+            continue;
+        }
+
+        for user in assigned_users {
+            p.unassign_task(user.id, task.id);
+        }
+        p.remove_task(task.id);
+    }
+
     Ok(())
 }
 
@@ -43,8 +63,7 @@ pub(crate) fn get_tasks_list(p: &Project) -> Vec<TaskItem> {
 }
 
 fn prompt_move_tasks(p: &mut Project) -> Result<(), inquire::error::InquireError> {
-    let selected_tasks =
-        MultiSelect::new("Select tasks to move:", get_categories_list(p)).prompt()?;
+    let selected_tasks = MultiSelect::new("Select tasks to move:", get_tasks_list(p)).prompt()?;
 
     let selected_category =
         Select::new("Select category:", categories::get_categories_list(p)).prompt()?;
@@ -57,7 +76,7 @@ fn prompt_move_tasks(p: &mut Project) -> Result<(), inquire::error::InquireError
 }
 
 fn prompt_edit_task(p: &mut Project) -> Result<(), inquire::error::InquireError> {
-    let selected_task = Select::new("Select task:", get_categories_list(p))
+    let selected_task = Select::new("Select task:", get_tasks_list(p))
         .prompt()
         .unwrap();
     let selected_field = Select::new("Select field:", vec!["Name", "Description"])

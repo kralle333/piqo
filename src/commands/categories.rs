@@ -1,7 +1,6 @@
+use crate::{data_storage, models::Project};
 use clap::ArgMatches;
 use inquire::{MultiSelect, Select};
-
-use crate::{data_storage, models::Project};
 
 use super::list_items::CategoryItem;
 
@@ -56,12 +55,13 @@ pub(crate) fn prompt_remove_categories(
 
     let not_deletable: Vec<&CategoryItem> = categories.iter().filter(|c| c.not_deletable).collect();
     if !not_deletable.is_empty() {
-        println!("The following categories are not deletable because they are assigned to tasks:");
+        println!("The following categories are not deletable as they contain tasks:");
         for category in &not_deletable {
             if category.not_deletable {
                 println!("{}", category.name);
             }
         }
+        println!();
     }
 
     let categories_to_remove = MultiSelect::new(
@@ -91,7 +91,7 @@ pub(crate) fn get_categories_list(p: &Project) -> Vec<CategoryItem> {
             CategoryItem {
                 id: t.id,
                 name: t.name.to_owned(),
-                not_deletable: p.tasks.iter().any(|task| task.assigned_to.contains(&t.id)),
+                not_deletable: p.tasks.iter().any(|task| task.category == t.id),
             }
         })
         .collect::<Vec<CategoryItem>>()

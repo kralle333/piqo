@@ -3,8 +3,8 @@ use owo_colors::OwoColorize;
 use std::collections::HashMap;
 
 use crate::models::{TaskJson, User};
+use crate::utils;
 use crate::utils::truncate as t;
-use crate::utils::{self, left_align as l};
 use crate::{models::Project, utils::center_align as c};
 
 impl Project {
@@ -64,7 +64,7 @@ impl Project {
                     ),
                     l[2]
                 ),
-                &t(&assigned_to, l[3])
+                &c(&t(&assigned_to, l[3]), l[3])
             );
         });
     }
@@ -193,7 +193,7 @@ impl Project {
             }
             println!();
         } else {
-            println!("No tasks in this category");
+            println!("No tasks in this category" );
             println!();
         }
     }
