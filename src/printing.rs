@@ -2,7 +2,7 @@ use chrono::NaiveDateTime;
 use owo_colors::OwoColorize;
 use std::collections::HashMap;
 
-use crate::models::TaskJson;
+use crate::models::{TaskJson, User};
 use crate::utils::truncate as t;
 use crate::utils::{self, left_align as l};
 use crate::{models::Project, utils::center_align as c};
@@ -22,39 +22,46 @@ impl Project {
             user_names.insert(&user.id, &user.name);
         }
 
-        let l = vec![15, 30, 12, 20];
+        let l = vec![36, 0, 12, 30];
 
         let header_0 = &c("Name", l[0]).bold().to_string();
-        let header_1 = &c("Description", l[1]);
+        // let header_1 = &c("Description", l[1]);
         let header_2 = &c("Category", l[2]).bold().to_string();
         let header_3 = &c("Assigned To", l[3]).bold().to_string();
-        println!(
-            "{:<15} {:<30} {:<12} {:<20}",
-            &t(header_0, l[0]),
-            &t(header_1, l[1]),
-            &t(header_2, l[2]),
-            &t(header_3, l[3])
-        );
+        println!("{:<36}|{:<12}|{:<30}", header_0, header_2, header_3,);
 
         println!("{}", "-".repeat(80));
 
         tasks.iter().for_each(|task| {
+            let users = task
+                .assigned_to
+                .iter()
+                .map(|i| self.get_user(*i).unwrap())
+                .collect::<Vec<User>>();
+
             let assigned_to = match task.assigned_to.is_empty() {
-                false => task
-                    .assigned_to
-                    .iter()
-                    .map(|i| t(&self.get_user(*i).unwrap().name, 10))
-                    .collect::<Vec<String>>()
-                    .join(", "),
+                false => {
+                    let total_space = l[3] - (users.len() - 1);
+                    let space_per_name = total_space / users.len();
+                    users
+                        .iter()
+                        .map(|f| t(user_names.get(&f.id).unwrap(), space_per_name))
+                        .collect::<Vec<String>>()
+                        .join(",")
+                }
+
                 true => "None".to_string(),
             };
 
             println!(
-                "{:<15}|{:<30}|{:<12}|{:<20}",
+                "{:<36}|{:<12}|{:<30}",
                 &t(&task.name, l[0]),
-                &t(&task.description, l[1]),
-                &t(
-                    &self.get_category(task.category).unwrap().name.to_string(),
+                // &t(&task.description, l[1]),
+                &c(
+                    &t(
+                        &self.get_category(task.category).unwrap().name.to_string(),
+                        l[2]
+                    ),
                     l[2]
                 ),
                 &t(&assigned_to, l[3])

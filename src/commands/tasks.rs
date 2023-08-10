@@ -7,6 +7,7 @@ use super::super::models::Project;
 
 use super::categories::get_categories_list;
 use super::list_items::TaskItem;
+use super::users::prompt_assign_users;
 use super::{categories, users};
 
 pub(crate) fn prompt_tasks(task_matches: &ArgMatches) -> Result<(), inquire::error::InquireError> {
@@ -105,8 +106,9 @@ fn prompt_create_task(p: &mut Project) -> Result<(), inquire::error::InquireErro
         .with_render_config(description_render_config())
         .prompt()?;
 
-    p.add_task(name, description);
-    Ok(())
+    let task_id = p.add_task(name, description);
+
+    users::prompt_select_user_to_assign(p, task_id)
 }
 
 pub(crate) fn prompt_create_tasks(p: &mut Project) -> Result<(), inquire::error::InquireError> {

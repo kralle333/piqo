@@ -89,7 +89,7 @@ impl Project {
         self.categories.push(self.create_category(name))
     }
 
-    pub(crate) fn add_task(&mut self, name: String, description: String) {
+    pub(crate) fn add_task(&mut self, name: String, description: String) -> u64 {
         let id = utils::get_unused_id(self.tasks.iter().map(|i| i.id).collect());
         let created_at_utc = chrono::Utc::now().timestamp();
         let updated_at_utc = chrono::Utc::now().timestamp();
@@ -105,6 +105,7 @@ impl Project {
             assigned_to: vec![],
         };
         self.tasks.push(task);
+        id
     }
 
     pub(crate) fn archieve_task(&mut self, id: u64) {

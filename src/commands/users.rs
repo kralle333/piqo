@@ -69,6 +69,18 @@ fn get_users_assigned_mod_list(p: &Project, task_id: u64) -> Vec<User> {
         .collect()
 }
 
+pub(crate) fn prompt_select_user_to_assign(
+    p: &mut Project,
+    task_id: u64,
+) -> Result<(), inquire::error::InquireError> {
+    let users_to_assign =
+        MultiSelect::new("Select Users To Assign", get_users_mod_list(p)).prompt()?;
+
+    for user in users_to_assign {
+        p.assign_task(user.id, task_id);
+    }
+    Ok(())
+}
 pub(crate) fn prompt_assign_users(p: &mut Project) -> Result<(), inquire::error::InquireError> {
     let tasks_mod_list = tasks::get_tasks_list(p);
     if tasks_mod_list.is_empty() {
@@ -77,14 +89,7 @@ pub(crate) fn prompt_assign_users(p: &mut Project) -> Result<(), inquire::error:
     }
 
     let selected_task = Select::new("Select Task To Assign", tasks_mod_list).prompt()?;
-
-    let users_to_assign =
-        MultiSelect::new("Select Users To Assign", get_users_mod_list(p)).prompt()?;
-
-    for user in users_to_assign {
-        p.assign_task(user.id, selected_task.id);
-    }
-    Ok(())
+    prompt_select_user_to_assign(p, selected_task.id)
 }
 
 pub(crate) fn prompt_unassign_users(p: &mut Project) -> Result<(), inquire::error::InquireError> {
