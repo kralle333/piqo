@@ -58,12 +58,24 @@ pub(crate) fn get_tasks_list(p: &Project) -> Vec<TaskItem> {
         .map(|t| TaskItem {
             id: t.id,
             name: t.name.to_owned(),
+            category: None,
+        })
+        .collect::<Vec<TaskItem>>()
+}
+pub(crate) fn get_tasks_list_with_categories(p: &Project) -> Vec<TaskItem> {
+    p.tasks
+        .iter()
+        .map(|t| TaskItem {
+            id: t.id,
+            name: t.name.to_owned(),
+            category: p.get_category_name(t.category),
         })
         .collect::<Vec<TaskItem>>()
 }
 
 fn prompt_move_tasks(p: &mut Project) -> Result<(), inquire::error::InquireError> {
-    let selected_tasks = MultiSelect::new("Select tasks to move:", get_tasks_list(p)).prompt()?;
+    let selected_tasks =
+        MultiSelect::new("Select tasks to move:", get_tasks_list_with_categories(p)).prompt()?;
 
     let categories = categories::get_categories_list(p, false);
 

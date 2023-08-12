@@ -132,6 +132,13 @@ impl Project {
         self.categories.iter().find(|c| c.id == id)
     }
 
+    pub(crate) fn get_category_name(&self, id: u64) -> Option<String> {
+        self.categories
+            .iter()
+            .find(|c| c.id == id)
+            .map(|c| c.name.clone())
+    }
+
     pub(crate) fn get_users(&self) -> &Vec<User> {
         &self.users
     }

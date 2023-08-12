@@ -3,11 +3,16 @@ use std::fmt::{self, Display, Formatter};
 pub struct TaskItem {
     pub id: u64,
     pub name: String,
+    pub category: Option<String>,
 }
 
 impl Display for TaskItem {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.name)
+        if self.category.is_none() {
+            write!(f, "{}", self.name)
+        } else {
+            write!(f, "{} ({})", self.name, self.category.as_ref().unwrap())
+        }
     }
 }
 
