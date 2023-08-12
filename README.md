@@ -21,21 +21,16 @@ cargo install piqo
 
 ## Quick Guide
 
-Navigate to the git repository and run the following command to initialize the project:
-```shell
-piqo init
-```
-This command takes you through setting up your initial task categories, tasks and users.
+Navigate to the git repository and run the following command to initialize the project
+![init](https://github.com/kralle333/piqo/assets/5738476/bde31afc-0b8e-4798-a254-f00ddb5ab056)
+
 
 To see all tasks of the project
-```shell
-piqo list (--json for json output) (--detailed for more details)
-```
+![list](https://github.com/kralle333/piqo/assets/5738476/87ee68eb-c7ca-418c-b3c2-742c48cf4b5a)
+
 
 To see all of the tasks assigned to you
-```
-piqo me
-```
+![me](https://github.com/kralle333/piqo/assets/5738476/a707c615-07bc-4cb9-b93c-acd88f5be6d7)
 
 
 
