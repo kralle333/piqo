@@ -121,19 +121,19 @@ pub(crate)fn parse() -> Result<(), inquire::error::InquireError> {
 }
 
 fn init() -> Result<(), inquire::error::InquireError> {
-    let pico_path = data_storage::check_pico_dir();
+    let piqo_path = data_storage::check_piqo_dir();
 
-    println!("pico_path: ");
-    match pico_path {
-        data_storage::PicoPath::FoundNotInit(pico_path) => {
-            println!("Initializing project at: {}", pico_path.to_str().unwrap());
+    println!("piqo_path: ");
+    match piqo_path {
+        data_storage::PiqoPath::FoundNotInit(piqo_path) => {
+            println!("Initializing project at: {}", piqo_path.to_str().unwrap());
         }
-        data_storage::PicoPath::Found(pico_path) => {
-            println!("Found pico dir at {}", pico_path.to_str().unwrap());
+        data_storage::PiqoPath::Found(piqo_path) => {
+            println!("Found piqo dir at {}", piqo_path.to_str().unwrap());
             println!("Project already initialized");
             return Ok(());
         }
-        data_storage::PicoPath::NotFound(err) => {
+        data_storage::PiqoPath::NotFound(err) => {
             return Err(inquire::InquireError::Custom(err.into()));
         }
     }
