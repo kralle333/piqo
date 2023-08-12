@@ -61,7 +61,7 @@ impl Display for User {
 }
 
 impl Project {
-    pub fn new(name: String) -> Self {
+    pub(crate)fn new(name: String) -> Self {
         Project {
             name,
             default_category: 0,

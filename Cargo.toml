@@ -2,8 +2,12 @@
 name = "pico"
 version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["Kristian Pilegaard Jensen <kralle@gmail.com>"]
+readme = "README.md"
+keywords = ["task", "todo", "list", "project", "producitvity"]
+documentation = "https://github.com/kralle333/pico"
+homepage = "https://github.com/kralle333/pico"
+license = "MIT"
 
 [dependencies]
 clap = { version = "4.3.21", features=["cargo"]}

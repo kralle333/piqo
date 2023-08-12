@@ -16,7 +16,7 @@ fn get_git_email(t: &str) -> std::process::Output {
         .expect("Failed to execute git command")
 }
 
-pub fn get_local_git_email() -> Option<String> {
+pub(crate)fn get_local_git_email() -> Option<String> {
     let output = get_git_email("local");
     let local_email = extract_email(output);
     if local_email.is_some() {
@@ -25,12 +25,12 @@ pub fn get_local_git_email() -> Option<String> {
     extract_email(get_git_email("global"))
 }
 
-pub fn gen_4digit_id() -> u64 {
+pub(crate)fn gen_4digit_id() -> u64 {
     let mut rng = rand::thread_rng();
     rng.gen_range(1000..9999)
 }
 
-pub fn get_unused_id(current_ids: Vec<u64>) -> u64 {
+pub(crate)fn get_unused_id(current_ids: Vec<u64>) -> u64 {
     let mut rand_id = gen_4digit_id();
 
     loop {
@@ -43,14 +43,14 @@ pub fn get_unused_id(current_ids: Vec<u64>) -> u64 {
     rand_id
 }
 
-pub fn truncate(s: &str, max_len: usize) -> String {
+pub(crate)fn truncate(s: &str, max_len: usize) -> String {
     if s.chars().count() > max_len - 1 {
         format!("{}…", &s[..max_len - 1])
     } else {
         s.to_owned()
     }
 }
-pub fn center_align(text: &str, width: usize) -> String {
+pub(crate)fn center_align(text: &str, width: usize) -> String {
     let padding = (width - text.chars().count()) / 2;
     format!(
         "{:<width$}",
@@ -58,20 +58,20 @@ pub fn center_align(text: &str, width: usize) -> String {
         width = width
     )
 }
-pub fn left_align(text: &str, width: usize) -> String {
+pub(crate)fn left_align(text: &str, width: usize) -> String {
     format!("{:<width$}", text, width = width)
 }
 
-pub fn print_line_left(text: &str, width: usize) {
+pub(crate)fn print_line_left(text: &str, width: usize) {
     println!("|{}|", self::left_align(text, width));
 }
-pub fn print_line_centered(text: &str, width: usize) {
+pub(crate)fn print_line_centered(text: &str, width: usize) {
     println!("|{}|", self::center_align(text, width));
 }
-pub fn print_divider(width: usize) {
+pub(crate)fn print_divider(width: usize) {
     println!("|{}|", "-".repeat(width));
 }
-pub fn format_description(s: &str, max_len: usize) -> Vec<String> {
+pub(crate)fn format_description(s: &str, max_len: usize) -> Vec<String> {
     let mut segments = Vec::new();
     s.lines().for_each(|f| {
         segments.extend(self::to_segments(f, max_len));

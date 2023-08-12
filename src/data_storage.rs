@@ -15,7 +15,7 @@ pub enum PicoPath {
     Found(PathBuf),
 }
 
-pub fn check_pico_dir() -> PicoPath {
+pub(crate)fn check_pico_dir() -> PicoPath {
     let git_location = gix_discover::upwards(Path::new("."));
 
     let git_location = match git_location {

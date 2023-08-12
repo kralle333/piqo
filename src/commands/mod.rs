@@ -10,7 +10,7 @@ pub mod list_items;
 pub mod tasks;
 pub mod users;
 
-pub fn parse() -> Result<(), inquire::error::InquireError> {
+pub(crate)fn parse() -> Result<(), inquire::error::InquireError> {
     let command = command!() // requires `cargo` feature
         .propagate_version(true)
         .subcommand_required(true)
