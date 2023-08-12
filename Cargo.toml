@@ -14,3 +14,4 @@ chrono = { version = "0.4.26"}
 rand = {version = "0.8.5"}
 owo-colors = "3.5.0"
 gix-discover = "0.22.1"
+gix = "0.51.0"

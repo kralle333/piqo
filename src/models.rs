@@ -1,5 +1,6 @@
 use crate::utils;
 
+use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display, Formatter};
 
@@ -215,5 +216,49 @@ impl Project {
 
     pub(crate) fn remove_task(&mut self, id: u64) {
         self.tasks.retain(|t| t.id != id)
+    }
+
+    pub(crate) fn get_task_description(&self, id: u64) -> String {
+        self.tasks
+            .iter()
+            .find(|t| t.id == id)
+            .unwrap()
+            .description
+            .to_string()
+    }
+
+    pub(crate) fn get_user_by_email(&self, email: &str) -> Option<&User> {
+        self.users
+            .iter()
+            .find(|u| u.git_email.as_ref().unwrap() == email)
+    }
+
+    fn print_status_for_category(&self, category_id: u64) {
+        let count = self
+            .tasks
+            .iter()
+            .filter(|t| t.category == category_id)
+            .count();
+        println!(
+            "{}: {}",
+            self.get_category(category_id).unwrap().name,
+            count,
+        );
+    }
+
+    pub(crate) fn print_status(&self) {
+        let tasks_msg = format!("Tasks:\t{}", self.get_unarchived_tasks().len(),);
+        println!("{}", tasks_msg.green());
+        let users_msg = format!("Users:\t{}", self.users.len());
+        println!("{}", users_msg.blue());
+        let categories_msg = format!("Categories: {}", self.categories.len());
+        println!("{}", categories_msg.yellow());
+
+        println!();
+        println!("Tasks per category:");
+
+        for category in &self.categories {
+            self.print_status_for_category(category.id);
+        }
     }
 }

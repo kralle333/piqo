@@ -243,7 +243,7 @@ impl Project {
         self.categories.iter().for_each(|c| println!("{}", c.name));
     }
 
-    pub(crate) fn print_status(&self) {
+    pub(crate) fn print_user_status(&self, user_id: u64) {
         self.tasks.iter().for_each(|t| {
             self.print_single_task(t.id);
             println!()

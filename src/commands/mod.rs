@@ -1,10 +1,12 @@
 use std::env;
 
-use crate::commands::categories::prompt_create_categories;
+use crate::{commands::categories::prompt_create_categories, utils};
 use clap::{command, Arg, ArgAction, Command};
 use owo_colors::OwoColorize;
 
 use crate::{data_storage, models::Project};
+
+use self::users::prompt_users;
 
 pub mod categories;
 pub mod list_items;
@@ -18,18 +20,27 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
         .arg_required_else_help(true)
         .subcommand(Command::new("init").about("Initializes new project"))
         .subcommand(
-            Command::new("list").about("Lists project tasks").arg(
-                Arg::new("json")
-                    .long("json")
-                    .action(ArgAction::SetTrue)
-                    .help("output in json format"),
-            ),
+            Command::new("list")
+                .about("Lists project tasks")
+                .arg(
+                    Arg::new("json")
+                        .long("json")
+                        .action(ArgAction::SetTrue)
+                        .help("output in json format"),
+                )
+                .arg(
+                    Arg::new("details")
+                        .short('d')
+                        .long("details")
+                        .action(ArgAction::SetTrue)
+                        .help("show task details"),
+                ),
         )
         .subcommand(Command::new("status").about("Prints status of project"))
         .subcommand(
             Command::new("categories")
                 .arg_required_else_help(true)
-                .about("Alter categoris of the project")
+                .about("Alter categories of the project")
                 .subcommand(Command::new("add").about("Add categories"))
                 .subcommand(Command::new("remove").about("Remove categories"))
                 .subcommand(Command::new("edit").about("Edits categories"))
@@ -62,16 +73,38 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
     let matches = command.get_matches();
     match matches.subcommand() {
         Some(("init", _)) => init()?,
+        Some(("me", _)) => {
+            let p = data_storage::load_project()?;
+
+            let user = match utils::get_local_git_email() {
+                Some(user) => p.get_user_by_email(user.as_str()),
+                _ => None,
+            };
+
+            let user_id = match user {
+                Some(user) => user.id,
+                _ => {
+                    let selected_user =
+                        inquire::Select::new("Select your user", users::get_users_mod_list(&p))
+                            .prompt()?;
+                    selected_user.id
+                }
+            };
+
+            p.print_user_status(user_id)
+        }
         Some(("status", _)) => {
             let p = data_storage::load_project()?;
-            p.print_status()
-            // p.print_status()
+
+            p.print_status();
         }
         Some(("list", sync_matches)) => {
             let p = data_storage::load_project()?;
 
             if sync_matches.get_flag("json") {
                 p.print_tasks_json();
+            } else if sync_matches.get_flag("details") {
+                p.print_tasks();
             } else {
                 p.print_tasks();
             }

@@ -1,5 +1,19 @@
 use rand::Rng;
 
+pub fn get_local_git_email() -> Option<String> {
+    let output = std::process::Command::new("git")
+        .args(&["config", "--local", "user.email"])
+        .output()
+        .expect("Failed to execute git command");
+
+    if output.status.success() {
+        let git_email = String::from_utf8(output.stdout).unwrap();
+        Some(git_email.trim().to_owned())
+    } else {
+        None
+    }
+}
+
 pub fn gen_4digit_id() -> u64 {
     let mut rng = rand::thread_rng();
     rng.gen_range(1000..9999)

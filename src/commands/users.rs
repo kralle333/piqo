@@ -48,7 +48,7 @@ fn print_single_user(p: &Project, id: u64) {
     }
 }
 
-fn get_users_mod_list(p: &Project) -> Vec<User> {
+pub(crate) fn get_users_mod_list(p: &Project) -> Vec<User> {
     p.get_users()
         .iter()
         .map(|u| User {
