@@ -2,7 +2,7 @@ use chrono::NaiveDateTime;
 use owo_colors::OwoColorize;
 use std::collections::HashMap;
 
-use crate::models::{TaskJson, User};
+use crate::models::{Task, TaskJson, User};
 use crate::utils;
 use crate::utils::truncate as t;
 use crate::{models::Project, utils::center_align as c};
@@ -146,7 +146,7 @@ impl Project {
                 }
                 utils::print_line_left(
                     &format!(
-                        "Categories: {}",
+                        "Category: {}",
                         self.categories
                             .iter()
                             .find(|c| c.id == t.category)
@@ -155,28 +155,28 @@ impl Project {
                     ),
                     width,
                 );
-                let created_at =
-                    chrono::NaiveDateTime::from_timestamp_opt(t.created_at_utc, 0).unwrap();
+                // let created_at =
+                //     chrono::NaiveDateTime::from_timestamp_opt(t.created_at_utc, 0).unwrap();
 
-                utils::print_line_left(
-                    &format!(
-                        "Created At: {}",
-                        chrono::DateTime::<chrono::Utc>::from_utc(
-                            created_at.to_owned(),
-                            chrono::Utc
-                        )
-                    ),
-                    width,
-                );
+                // utils::print_line_left(
+                //     &format!(
+                //         "Created At: {}",
+                //         chrono::DateTime::<chrono::Utc>::from_utc(
+                //             created_at.to_owned(),
+                //             chrono::Utc
+                //         )
+                //     ),
+                //     width,
+                // );
 
-                let modified_at = &format!(
-                    "Updated At: {}",
-                    chrono::DateTime::<chrono::Utc>::from_utc(
-                        chrono::NaiveDateTime::from_timestamp_opt(t.updated_at_utc, 0).unwrap(),
-                        chrono::Utc
-                    )
-                );
-                utils::print_line_left(modified_at.as_str(), width);
+                // let modified_at = &format!(
+                //     "Updated At: {}",
+                //     chrono::DateTime::<chrono::Utc>::from_utc(
+                //         chrono::NaiveDateTime::from_timestamp_opt(t.updated_at_utc, 0).unwrap(),
+                //         chrono::Utc
+                //     )
+                // );
+                // utils::print_line_left(modified_at.as_str(), width);
 
                 if self.users.is_empty() {
                     utils::print_line_left("No users assigned to task", width);
@@ -300,12 +300,27 @@ impl Project {
     }
 
     pub(crate) fn print_user_status(&self, user_id: u64) {
-        self.tasks
+        let user_tasks: Vec<&Task> = self
+            .tasks
             .iter()
             .filter(|x| x.assigned_to.iter().any(|u| u == &user_id))
-            .for_each(|t| {
-                self.print_single_task(t.id);
-                println!()
-            });
+            .collect();
+
+        for task in &user_tasks {
+            println!("{}", task.name.green());
+            if !task.description.is_empty() {
+                println!("{}", "-".repeat(20));
+                println!(
+                    "{}",
+                    utils::format_description(&task.description, 80).join("\n")
+                );
+                println!("{}", "-".repeat(20));
+            }
+            println!(
+                "Category: {}",
+                self.get_category(task.category).unwrap().name
+            );
+            println!();
+        }
     }
 }

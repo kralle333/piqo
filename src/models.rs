@@ -1,6 +1,5 @@
 use crate::utils;
 
-use owo_colors::OwoColorize;
 use serde::{Deserialize, Serialize};
 use std::fmt::{self, Display, Formatter};
 
