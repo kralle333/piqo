@@ -299,6 +299,15 @@ impl Project {
         self.categories.iter().for_each(|c| println!("{}", c.name));
     }
 
+    pub(crate) fn print_users(&self) {
+        let users = self.get_users();
+        for ele in users {
+            match &ele.git_email {
+                Some(email) => println!("{} <{}>", ele.name, email),
+                None => println!("{} <No email>", ele.name),
+            }
+        }
+    }
     pub(crate) fn print_user_status(&self, user_id: u64) {
         let mut user_tasks: Vec<&Task> = self
             .tasks

@@ -15,11 +15,11 @@ pub(crate) fn prompt_users(sub_matches: &ArgMatches) -> Result<(), inquire::erro
     let mut p = data_storage::load_project().unwrap();
 
     match sub_matches.subcommand() {
-        Some(("add", _)) => prompt_add_users(&mut p).unwrap(),
-        Some(("remove", _)) => prompt_remove_users(&mut p).unwrap(),
-        Some(("assign", _)) => prompt_assign_users(&mut p).unwrap(),
-        Some(("unassign", _)) => prompt_unassign_users(&mut p).unwrap(),
-        Some(("list", _)) => prompt_list(&mut p),
+        Some(("add", _)) => prompt_add_users(&mut p)?,
+        Some(("remove", _)) => prompt_remove_users(&mut p)?,
+        Some(("assign", _)) => prompt_assign_users(&mut p)?,
+        Some(("unassign", _)) => prompt_unassign_users(&mut p)?,
+        Some(("list", _)) => p.print_users(),
         Some(("print", args)) => {
             let id: u64 = args.get_one::<String>("ID").unwrap().parse().unwrap();
             print_single_user(&p, id);
@@ -28,16 +28,6 @@ pub(crate) fn prompt_users(sub_matches: &ArgMatches) -> Result<(), inquire::erro
     };
     data_storage::store_project(&p)?;
     Ok(())
-}
-
-fn prompt_list(p: &mut Project) {
-    let users = p.get_users();
-    for ele in users {
-        match &ele.git_email {
-            Some(email) => println!("{} <{}>", ele.name, email),
-            None => println!("{} <No email>", ele.name),
-        }
-    }
 }
 
 //TODO: Fix this
