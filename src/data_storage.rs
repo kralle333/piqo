@@ -9,43 +9,43 @@ use owo_colors::OwoColorize;
 
 use crate::models;
 
-pub enum CrabdPath {
+pub enum PicoPath {
     NotFound(gix_discover::upwards::Error),
     FoundNotInit(PathBuf),
     Found(PathBuf),
 }
 
-pub fn check_crabd_dir() -> CrabdPath {
+pub fn check_pico_dir() -> PicoPath {
     let git_location = gix_discover::upwards(Path::new("."));
 
     let git_location = match git_location {
         Ok(git_path) => git_path.0,
         Err(err) => {
-            return CrabdPath::NotFound(err);
+            return PicoPath::NotFound(err);
         }
     };
 
     let (_, github_folder_dir) = git_location.into_repository_and_work_tree_directories();
 
-    let crabd_json_path = github_folder_dir.unwrap().join(".crabd");
-    if crabd_json_path.exists() {
-        CrabdPath::Found(crabd_json_path)
+    let pico_json_path = github_folder_dir.unwrap().join(".pico");
+    if pico_json_path.exists() {
+        PicoPath::Found(pico_json_path)
     } else {
-        CrabdPath::FoundNotInit(crabd_json_path)
+        PicoPath::FoundNotInit(pico_json_path)
     }
 }
 
 pub(crate) fn store_project(p: &Project) -> Result<(), std::io::Error> {
-    let crabd = check_crabd_dir();
+    let pico = check_pico_dir();
 
-    let path = match crabd {
-        CrabdPath::NotFound(err) => {
+    let path = match pico {
+        PicoPath::NotFound(err) => {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                format!("Unable to store .cradb file: {}", err),
+                format!("Unable to store .pico file: {}", err),
             ))
         }
-        CrabdPath::FoundNotInit(path) | CrabdPath::Found(path) => Some(path),
+        PicoPath::FoundNotInit(path) | PicoPath::Found(path) => Some(path),
     };
     let mut file = File::create(path.unwrap())?;
     let serialized = serde_json::to_string(p)?;
@@ -54,26 +54,26 @@ pub(crate) fn store_project(p: &Project) -> Result<(), std::io::Error> {
 }
 
 pub(crate) fn load_project() -> Result<Project, std::io::Error> {
-    let crabd = check_crabd_dir();
+    let pico = check_pico_dir();
 
-    let path = match crabd {
-        CrabdPath::NotFound(err) => {
+    let path = match pico {
+        PicoPath::NotFound(err) => {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::Other,
                 format!(
-                    "Unable to load project, .cradb file could not be found: {}",
+                    "Unable to load project, .pico file could not be found: {}",
                     err
                 ),
             ));
         }
-        CrabdPath::Found(path) => Some(path),
-        CrabdPath::FoundNotInit(path) => {
+        PicoPath::Found(path) => Some(path),
+        PicoPath::FoundNotInit(path) => {
             return Err(std::io::Error::new(
                 std::io::ErrorKind::Other,
                 format!(
-                    "Unable to load project, .cradb file could not be found: {:?} - {} ",
+                    "Unable to load project, .pico file could not be found: {:?} - {} ",
                     path,
-                    "try running `crabd init`".green(),
+                    "try running `pico init`".green(),
                 ),
             ));
         }

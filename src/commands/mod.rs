@@ -121,19 +121,19 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
 }
 
 fn init() -> Result<(), inquire::error::InquireError> {
-    let crabd_path = data_storage::check_crabd_dir();
+    let pico_path = data_storage::check_pico_dir();
 
-    println!("crabd_path: ");
-    match crabd_path {
-        data_storage::CrabdPath::FoundNotInit(crabd_path) => {
-            println!("Initializing project at: {}", crabd_path.to_str().unwrap());
+    println!("pico_path: ");
+    match pico_path {
+        data_storage::PicoPath::FoundNotInit(pico_path) => {
+            println!("Initializing project at: {}", pico_path.to_str().unwrap());
         }
-        data_storage::CrabdPath::Found(crabd_path) => {
-            println!("Found crabd dir at {}", crabd_path.to_str().unwrap());
+        data_storage::PicoPath::Found(pico_path) => {
+            println!("Found pico dir at {}", pico_path.to_str().unwrap());
             println!("Project already initialized");
             return Ok(());
         }
-        data_storage::CrabdPath::NotFound(err) => {
+        data_storage::PicoPath::NotFound(err) => {
             return Err(inquire::InquireError::Custom(err.into()));
         }
     }
