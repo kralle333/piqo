@@ -300,11 +300,13 @@ impl Project {
     }
 
     pub(crate) fn print_user_status(&self, user_id: u64) {
-        let user_tasks: Vec<&Task> = self
+        let mut user_tasks: Vec<&Task> = self
             .tasks
             .iter()
             .filter(|x| x.assigned_to.iter().any(|u| u == &user_id))
             .collect();
+
+        user_tasks.sort_by(|a, b| b.category.cmp(&a.category));
 
         for task in &user_tasks {
             println!("{}", task.name.green());
