@@ -99,6 +99,33 @@ impl Project {
             );
         });
     }
+    fn print_status_for_category(&self, category_id: u64) {
+        let count = self
+            .tasks
+            .iter()
+            .filter(|t| t.category == category_id)
+            .count();
+        println!(
+            "{}: {}",
+            self.get_category(category_id).unwrap().name,
+            count,
+        );
+    }
+    pub(crate) fn print_status(&self) {
+        let tasks_msg = format!("Tasks:\t{}", self.get_unarchived_tasks().len(),);
+        println!("{}", tasks_msg.green());
+        let users_msg = format!("Users:\t{}", self.users.len());
+        println!("{}", users_msg.blue());
+        let categories_msg = format!("Categories: {}", self.categories.len());
+        println!("{}", categories_msg.yellow());
+
+        println!();
+        println!("Tasks per category:");
+
+        for category in &self.categories {
+            self.print_status_for_category(category.id);
+        }
+    }
     pub(crate) fn print_single_task(&self, id: u64) {
         let task = self.tasks.iter().find(|t| t.id == id);
 

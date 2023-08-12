@@ -230,32 +230,12 @@ impl Project {
             .find(|u| u.git_email.as_ref().unwrap() == email)
     }
 
-    fn print_status_for_category(&self, category_id: u64) {
-        let count = self
-            .tasks
+    pub(crate) fn get_task_description(&self, id: u64) -> &str {
+        self.tasks
             .iter()
-            .filter(|t| t.category == category_id)
-            .count();
-        println!(
-            "{}: {}",
-            self.get_category(category_id).unwrap().name,
-            count,
-        );
-    }
-
-    pub(crate) fn print_status(&self) {
-        let tasks_msg = format!("Tasks:\t{}", self.get_unarchived_tasks().len(),);
-        println!("{}", tasks_msg.green());
-        let users_msg = format!("Users:\t{}", self.users.len());
-        println!("{}", users_msg.blue());
-        let categories_msg = format!("Categories: {}", self.categories.len());
-        println!("{}", categories_msg.yellow());
-
-        println!();
-        println!("Tasks per category:");
-
-        for category in &self.categories {
-            self.print_status_for_category(category.id);
-        }
+            .find(|t| t.id == id)
+            .unwrap()
+            .description
+            .as_str()
     }
 }

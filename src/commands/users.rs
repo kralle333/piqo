@@ -75,11 +75,18 @@ pub(crate) fn prompt_select_user_to_assign(
     task_id: u64,
 ) -> Result<(), inquire::error::InquireError> {
     let users = get_users_mod_list(p);
+
+    let users = users
+        .iter()
+        .filter(|u| !p.get_assigned_users(task_id).iter().any(|a| a.id == u.id))
+        .collect::<Vec<&User>>();
+
     if users.is_empty() {
+        println!("No users to assign");
         return Ok(());
     }
 
-    let users_to_assign = MultiSelect::new("Select users uo ussign", users).prompt()?;
+    let users_to_assign = MultiSelect::new("Select users to assign", users).prompt()?;
 
     for user in users_to_assign {
         p.assign_task(user.id, task_id);
@@ -107,7 +114,7 @@ pub(crate) fn prompt_unassign_users(p: &mut Project) -> Result<(), inquire::erro
         return Ok(());
     }
 
-    let selected_task = Select::new("Select Task To Unassign", tasks_mod_list).prompt()?;
+    let selected_task = Select::new("Select task to unassign", tasks_mod_list).prompt()?;
 
     let assigned = get_users_assigned_mod_list(p, selected_task.id);
 
@@ -116,7 +123,7 @@ pub(crate) fn prompt_unassign_users(p: &mut Project) -> Result<(), inquire::erro
         return Ok(());
     }
 
-    let users_to_unassign = MultiSelect::new("Select Users To Unassign", assigned).prompt()?;
+    let users_to_unassign = MultiSelect::new("Select users to unassign", assigned).prompt()?;
 
     for user in users_to_unassign {
         p.unassign_task(user.id, selected_task.id);

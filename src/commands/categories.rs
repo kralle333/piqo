@@ -14,7 +14,8 @@ pub(crate) fn prompt_categories(
         Some(("edit", _)) => prompt_edit_category(&mut p).unwrap(),
         Some(("list", _)) => p.print_categories(),
         Some(("print", _)) => {
-            let selected = Select::new("Select category:", get_categories_list(&p)).prompt()?;
+            let selected =
+                Select::new("Select category:", get_categories_list(&p, false)).prompt()?;
 
             p.print_category(selected.id);
         }
@@ -51,7 +52,7 @@ pub(crate) fn prompt_create_categories(
 pub(crate) fn prompt_remove_categories(
     p: &mut Project,
 ) -> Result<(), inquire::error::InquireError> {
-    let categories = get_categories_list(p);
+    let categories = get_categories_list(p, true);
 
     let not_deletable: Vec<&CategoryItem> = categories.iter().filter(|c| c.not_deletable).collect();
     if !not_deletable.is_empty() {
@@ -77,21 +78,21 @@ pub(crate) fn prompt_remove_categories(
 }
 
 pub(crate) fn prompt_edit_category(p: &mut Project) -> Result<(), inquire::error::InquireError> {
-    let categories = get_categories_list(p);
+    let categories = get_categories_list(p, false);
     let category_to_edit = inquire::Select::new("Select category to edit", categories).prompt()?;
     let new_name = inquire::Text::new("New name").prompt()?;
     p.edit_category(category_to_edit.id, new_name.as_str());
     Ok(())
 }
 
-pub(crate) fn get_categories_list(p: &Project) -> Vec<CategoryItem> {
+pub(crate) fn get_categories_list(p: &Project, check_deletable: bool) -> Vec<CategoryItem> {
     p.categories
         .iter()
         .map(|t| -> CategoryItem {
             CategoryItem {
                 id: t.id,
                 name: t.name.to_owned(),
-                not_deletable: p.tasks.iter().any(|task| task.category == t.id),
+                not_deletable: check_deletable && p.tasks.iter().any(|task| task.category == t.id),
             }
         })
         .collect::<Vec<CategoryItem>>()

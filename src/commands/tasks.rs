@@ -65,8 +65,9 @@ pub(crate) fn get_tasks_list(p: &Project) -> Vec<TaskItem> {
 fn prompt_move_tasks(p: &mut Project) -> Result<(), inquire::error::InquireError> {
     let selected_tasks = MultiSelect::new("Select tasks to move:", get_tasks_list(p)).prompt()?;
 
-    let selected_category =
-        Select::new("Select category:", categories::get_categories_list(p)).prompt()?;
+    let categories = categories::get_categories_list(p, false);
+
+    let selected_category = Select::new("Select category:", categories).prompt()?;
 
     for task in selected_tasks {
         p.move_task(task.id, selected_category.id);
@@ -88,7 +89,9 @@ fn prompt_edit_task(p: &mut Project) -> Result<(), inquire::error::InquireError>
             p.edit_task_name(selected_task.id, new_name);
         }
         "Description" => {
-            let new_description = inquire::Editor::new("New description:").prompt()?;
+            let new_description = inquire::Editor::new("New description:")
+                .with_predefined_text(p.get_task_description(selected_task.id))
+                .prompt()?;
             p.edit_task_description(selected_task.id, new_description);
         }
         _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
