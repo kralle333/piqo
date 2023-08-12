@@ -673,7 +673,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pico"
+name = "pico-cli"
 version = "0.1.0"
 dependencies = [
  "chrono",

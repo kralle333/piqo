@@ -1,5 +1,5 @@
 [package]
-name = "pico"
+name = "pico-cli"
 version = "0.1.0"
 edition = "2021"
 authors = ["Kristian Pilegaard Jensen <kralle@gmail.com>"]
