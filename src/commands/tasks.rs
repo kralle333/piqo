@@ -12,7 +12,7 @@ pub(crate) fn prompt_tasks(task_matches: &ArgMatches) -> Result<(), inquire::err
     let mut p = data_storage::load_project()?;
     match task_matches.subcommand() {
         Some(("add", _)) => prompt_create_tasks(&mut p)?,
-        Some(("archieve", _)) => prompt_archieve_tasks(&mut p)?,
+        Some(("archive", _)) => prompt_archive_tasks(&mut p)?,
         Some(("assign", _)) => users::prompt_assign_users(&mut p)?,
         Some(("unassign", _)) => users::prompt_unassign_users(&mut p)?,
         Some(("move", _)) => prompt_move_tasks(&mut p)?,
@@ -96,12 +96,12 @@ fn prompt_edit_task(p: &mut Project) -> Result<(), inquire::error::InquireError>
     Ok(())
 }
 
-fn prompt_archieve_tasks(p: &mut Project) -> Result<(), inquire::error::InquireError> {
+fn prompt_archive_tasks(p: &mut Project) -> Result<(), inquire::error::InquireError> {
     let selected_tasks =
-        MultiSelect::new("Select tasks to archieve:", get_tasks_list(p)).prompt()?;
+        MultiSelect::new("Select tasks to archive:", get_tasks_list(p)).prompt()?;
 
     for task in selected_tasks {
-        p.archieve_task(task.id);
+        p.archive_task(task.id);
     }
 
     Ok(())

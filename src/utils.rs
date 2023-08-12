@@ -1,17 +1,28 @@
 use rand::Rng;
 
-pub fn get_local_git_email() -> Option<String> {
-    let output = std::process::Command::new("git")
-        .args(&["config", "--local", "user.email"])
-        .output()
-        .expect("Failed to execute git command");
-
+fn extract_email(output: std::process::Output) -> Option<String> {
     if output.status.success() {
         let git_email = String::from_utf8(output.stdout).unwrap();
         Some(git_email.trim().to_owned())
     } else {
         None
     }
+}
+
+fn get_git_email(t: &str) -> std::process::Output {
+    std::process::Command::new("git")
+        .args(["config", &format!("--{}", t), "user.email"])
+        .output()
+        .expect("Failed to execute git command")
+}
+
+pub fn get_local_git_email() -> Option<String> {
+    let output = get_git_email("local");
+    let local_email = extract_email(output);
+    if local_email.is_some() {
+        return local_email;
+    }
+    extract_email(get_git_email("global"))
 }
 
 pub fn gen_4digit_id() -> u64 {
@@ -60,8 +71,16 @@ pub fn print_line_centered(text: &str, width: usize) {
 pub fn print_divider(width: usize) {
     println!("|{}|", "-".repeat(width));
 }
+pub fn format_description(s: &str, max_len: usize) -> Vec<String> {
+    let mut segments = Vec::new();
+    s.lines().for_each(|f| {
+        segments.extend(self::to_segments(f, max_len));
+    });
 
-pub fn to_segments(s: &str, max_len: usize) -> Vec<String> {
+    segments
+}
+
+fn to_segments(s: &str, max_len: usize) -> Vec<String> {
     let mut segments = Vec::new();
     let mut current_segment = String::new();
     let mut current_len = 0;
@@ -78,17 +97,3 @@ pub fn to_segments(s: &str, max_len: usize) -> Vec<String> {
     segments.push(current_segment);
     segments
 }
-
-// fn create_printer(fields: Vec<i32>) -> String {
-//     let sum: i32 = fields.iter().sum();
-
-//     if sum + (fields.len() - 1) as i32 > 80 {
-//         panic!("too long fields")
-//     }
-
-//     return fields
-//         .iter()
-//         .map(|f| format!("{{:<{}}}", f))
-//         .collect::<Vec<String>>()
-//         .join(" ");
-// }

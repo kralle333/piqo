@@ -8,6 +8,37 @@ use crate::utils::truncate as t;
 use crate::{models::Project, utils::center_align as c};
 
 impl Project {
+    pub(crate) fn print_tasks_detailed(&self) {
+        for task in self.get_unarchived_tasks() {
+            println!("{}", task.name.green());
+            if !task.description.is_empty() {
+                println!("{}", "-".repeat(20));
+                println!(
+                    "{}",
+                    utils::format_description(&task.description, 80).join("\n")
+                );
+                println!("{}", "-".repeat(20));
+            }
+            println!(
+                "Category: {}",
+                self.get_category(task.category).unwrap().name
+            );
+            println!("Assigned to:");
+            if task.assigned_to.is_empty() {
+                println!(" • None");
+            } else {
+                self.get_assigned_users(task.id).iter().for_each(|u| {
+                    println!(
+                        " • {} <{}>",
+                        u.name,
+                        u.git_email.to_owned().unwrap_or("no email".to_string())
+                    );
+                });
+            }
+            println!();
+        }
+    }
+
     pub(crate) fn print_tasks(&self) {
         let mut tasks = self.tasks.clone();
         tasks.sort_by(|a, b| a.category.cmp(&b.category));
@@ -80,7 +111,7 @@ impl Project {
                 utils::print_divider(width);
 
                 if !t.description.is_empty() {
-                    for segment in utils::to_segments(&t.description, width - 2).iter() {
+                    for segment in utils::format_description(&t.description, width - 2).iter() {
                         utils::print_line_left(segment, width);
                     }
 
@@ -193,7 +224,7 @@ impl Project {
             }
             println!();
         } else {
-            println!("No tasks in this category" );
+            println!("No tasks in this category");
             println!();
         }
     }
@@ -222,13 +253,11 @@ impl Project {
                     .unwrap()
                     .to_string(),
                 updated_at_utc_unix: t.updated_at_utc,
-                archieved_at_utc_unix: t.archieved_at_utc.unwrap_or(0),
-                archieved_at_utc: match t.archieved_at_utc {
-                    Some(archieved_at_utc) => {
-                        NaiveDateTime::from_timestamp_opt(archieved_at_utc, 0)
-                            .unwrap()
-                            .to_string()
-                    }
+                archived_at_utc_unix: t.archived_at_utc.unwrap_or(0),
+                archived_at_utc: match t.archived_at_utc {
+                    Some(archived_at_utc) => NaiveDateTime::from_timestamp_opt(archived_at_utc, 0)
+                        .unwrap()
+                        .to_string(),
 
                     None => "".to_string(),
                 },
@@ -244,9 +273,12 @@ impl Project {
     }
 
     pub(crate) fn print_user_status(&self, user_id: u64) {
-        self.tasks.iter().for_each(|t| {
-            self.print_single_task(t.id);
-            println!()
-        });
+        self.tasks
+            .iter()
+            .filter(|x| x.assigned_to.iter().any(|u| u == &user_id))
+            .for_each(|t| {
+                self.print_single_task(t.id);
+                println!()
+            });
     }
 }

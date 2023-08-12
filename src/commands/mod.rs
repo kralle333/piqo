@@ -2,11 +2,8 @@ use std::env;
 
 use crate::{commands::categories::prompt_create_categories, utils};
 use clap::{command, Arg, ArgAction, Command};
-use owo_colors::OwoColorize;
 
 use crate::{data_storage, models::Project};
-
-use self::users::prompt_users;
 
 pub mod categories;
 pub mod list_items;
@@ -19,6 +16,7 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
         .subcommand_required(true)
         .arg_required_else_help(true)
         .subcommand(Command::new("init").about("Initializes new project"))
+        .subcommand(Command::new("me").about("View your status in the project"))
         .subcommand(
             Command::new("list")
                 .about("Lists project tasks")
@@ -84,9 +82,11 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
             let user_id = match user {
                 Some(user) => user.id,
                 _ => {
-                    let selected_user =
-                        inquire::Select::new("Select your user", users::get_users_mod_list(&p))
-                            .prompt()?;
+                    let selected_user = inquire::Select::new(
+                        "Unable to detect you, select your user",
+                        users::get_users_mod_list(&p),
+                    )
+                    .prompt()?;
                     selected_user.id
                 }
             };
@@ -104,7 +104,7 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
             if sync_matches.get_flag("json") {
                 p.print_tasks_json();
             } else if sync_matches.get_flag("details") {
-                p.print_tasks();
+                p.print_tasks_detailed();
             } else {
                 p.print_tasks();
             }
@@ -137,7 +137,6 @@ fn init() -> Result<(), inquire::error::InquireError> {
             return Err(inquire::InquireError::Custom(err.into()));
         }
     }
-    let a = "lol".green();
     let initial_project_name = match env::current_dir() {
         Ok(path) => path
             .iter()

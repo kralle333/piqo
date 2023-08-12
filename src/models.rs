@@ -12,7 +12,7 @@ pub(crate) struct Task {
     pub category: u64,
     pub created_at_utc: i64,
     pub updated_at_utc: i64,
-    pub archieved_at_utc: Option<i64>,
+    pub archived_at_utc: Option<i64>,
     pub assigned_to: Vec<u64>,
 }
 
@@ -27,8 +27,8 @@ pub(crate) struct TaskJson {
     pub created_at_utc: String,
     pub updated_at_utc_unix: i64,
     pub updated_at_utc: String,
-    pub archieved_at_utc_unix: i64,
-    pub archieved_at_utc: String,
+    pub archived_at_utc_unix: i64,
+    pub archived_at_utc: String,
     pub assigned_to_ids: Vec<u64>,
     pub assigned_to: Vec<User>,
 }
@@ -102,19 +102,19 @@ impl Project {
             category,
             created_at_utc,
             updated_at_utc,
-            archieved_at_utc: None,
+            archived_at_utc: None,
             assigned_to: vec![],
         };
         self.tasks.push(task);
         id
     }
 
-    pub(crate) fn archieve_task(&mut self, id: u64) {
+    pub(crate) fn archive_task(&mut self, id: u64) {
         self.tasks
             .iter_mut()
             .find(|t| t.id == id)
             .unwrap()
-            .archieved_at_utc = Some(chrono::Utc::now().timestamp());
+            .archived_at_utc = Some(chrono::Utc::now().timestamp());
     }
 
     pub(crate) fn move_task(&mut self, task_id: u64, category_id: u64) {
@@ -193,6 +193,12 @@ impl Project {
         }
         users
     }
+    pub(crate) fn get_unarchived_tasks(&self) -> Vec<&Task> {
+        self.tasks
+            .iter()
+            .filter(|t| t.archived_at_utc.is_none())
+            .collect()
+    }
 
     pub(crate) fn edit_category(&mut self, category_id: u64, new_name: &str) {
         self.categories
@@ -216,15 +222,6 @@ impl Project {
 
     pub(crate) fn remove_task(&mut self, id: u64) {
         self.tasks.retain(|t| t.id != id)
-    }
-
-    pub(crate) fn get_task_description(&self, id: u64) -> String {
-        self.tasks
-            .iter()
-            .find(|t| t.id == id)
-            .unwrap()
-            .description
-            .to_string()
     }
 
     pub(crate) fn get_user_by_email(&self, email: &str) -> Option<&User> {
