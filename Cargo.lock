@@ -673,8 +673,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "piqo"
-version = "0.1.0"
+name = "pico-cli"
+version = "0.1.1"
 dependencies = [
  "chrono",
  "clap",

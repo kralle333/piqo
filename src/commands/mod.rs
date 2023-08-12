@@ -10,7 +10,7 @@ pub mod list_items;
 pub mod tasks;
 pub mod users;
 
-pub(crate)fn parse() -> Result<(), inquire::error::InquireError> {
+pub(crate) fn parse() -> Result<(), inquire::error::InquireError> {
     let command = command!() // requires `cargo` feature
         .propagate_version(true)
         .subcommand_required(true)
@@ -64,6 +64,7 @@ pub(crate)fn parse() -> Result<(), inquire::error::InquireError> {
                 .about("Alter users of project")
                 .subcommand(Command::new("add").about("Adds new users"))
                 .subcommand(Command::new("remove").about("Removes users"))
+                .subcommand(Command::new("edit").about("Edits users"))
                 .subcommand(Command::new("assign").about("Assign users to tasks"))
                 .subcommand(Command::new("list").about("Lists users")), // .subcommand(Command::new("print")),
         );

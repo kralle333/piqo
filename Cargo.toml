@@ -1,6 +1,6 @@
 [package]
-name = "piqo"
-version = "0.1.0"
+name = "pico-cli"
+version = "0.1.1"
 edition = "2021"
 authors = ["Kristian Pilegaard Jensen <kralle@gmail.com>"]
 description = "A easy to use tool for managing your tasks in a git repository project."

@@ -61,7 +61,7 @@ impl Display for User {
 }
 
 impl Project {
-    pub(crate)fn new(name: String) -> Self {
+    pub(crate) fn new(name: String) -> Self {
         Project {
             name,
             default_category: 0,
@@ -144,6 +144,8 @@ impl Project {
     }
 
     pub(crate) fn remove_user(&mut self, ele: &User) {
+        self.tasks
+            .retain_mut(|t| t.assigned_to.iter().all(|u| u != &ele.id));
         self.users.retain_mut(|u| u.id != ele.id);
     }
 
@@ -243,5 +245,14 @@ impl Project {
             .unwrap()
             .description
             .as_str()
+    }
+
+    pub(crate) fn edit_user(&mut self, id: u64, name: &str, email: Option<String>) {
+        self.users.iter_mut().find(|u| u.id == id).unwrap().name = name.to_string();
+        self.users
+            .iter_mut()
+            .find(|u| u.id == id)
+            .unwrap()
+            .git_email = email;
     }
 }

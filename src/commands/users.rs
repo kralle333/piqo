@@ -17,6 +17,7 @@ pub(crate) fn prompt_users(sub_matches: &ArgMatches) -> Result<(), inquire::erro
     match sub_matches.subcommand() {
         Some(("add", _)) => prompt_add_users(&mut p)?,
         Some(("remove", _)) => prompt_remove_users(&mut p)?,
+        Some(("edit", _)) => prompt_edit_user(&mut p)?,
         Some(("assign", _)) => prompt_assign_users(&mut p)?,
         Some(("unassign", _)) => prompt_unassign_users(&mut p)?,
         Some(("list", _)) => p.print_users(),
@@ -27,6 +28,31 @@ pub(crate) fn prompt_users(sub_matches: &ArgMatches) -> Result<(), inquire::erro
         _ => unreachable!("Exhausted list of subcommands and subcommand_required prevents `None`"),
     };
     data_storage::store_project(&p)?;
+    Ok(())
+}
+
+fn prompt_edit_user(p: &mut Project) -> Result<(), inquire::error::InquireError> {
+    let users = get_users_mod_list(p);
+    let selected = Select::new("Select user:", users).prompt()?;
+    let selected_edit = Select::new("Select field to edit:", vec!["Name", "Email"]).prompt()?;
+    match selected_edit {
+        "Name" => {
+            let new_name = inquire::Text::new("New name").prompt()?;
+            if new_name.is_empty() {
+                return Err(inquire::error::InquireError::OperationCanceled);
+            }
+            p.edit_user(selected.id, new_name.as_str(), selected.git_email);
+        }
+        "Email" => {
+            let new_git_email = inquire::Text::new("New git email").prompt()?;
+            if new_git_email.is_empty() {
+                p.edit_user(selected.id, selected.name.as_str(), None);
+            } else {
+                p.edit_user(selected.id, selected.name.as_str(), Some(new_git_email));
+            }
+        }
+        _ => unreachable!(),
+    }
     Ok(())
 }
 
