@@ -30,8 +30,9 @@ pub fn parse() -> Result<(), inquire::error::InquireError> {
             Command::new("categories")
                 .arg_required_else_help(true)
                 .about("Alter categoris of the project")
-                .subcommand(Command::new("remove").about("Removes category"))
-                .subcommand(Command::new("edit").about("Edits category"))
+                .subcommand(Command::new("add").about("Add categories"))
+                .subcommand(Command::new("remove").about("Remove categories"))
+                .subcommand(Command::new("edit").about("Edits categories"))
                 .subcommand(Command::new("list").about("Prints categories")),
         ) // .subcommand(Command::new("print").about("Prints details of one category")),
         .subcommand(
