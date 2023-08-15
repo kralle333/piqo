@@ -15,7 +15,7 @@ pub enum PiqoPath {
     Found(PathBuf),
 }
 
-pub(crate)fn check_piqo_dir() -> PiqoPath {
+pub(crate) fn check_piqo_dir() -> PiqoPath {
     let git_location = gix_discover::upwards(Path::new("."));
 
     let git_location = match git_location {
@@ -48,7 +48,7 @@ pub(crate) fn store_project(p: &Project) -> Result<(), std::io::Error> {
         PiqoPath::FoundNotInit(path) | PiqoPath::Found(path) => Some(path),
     };
     let mut file = File::create(path.unwrap())?;
-    let serialized = serde_json::to_string(p)?;
+    let serialized = serde_json::to_string_pretty(p)?;
     file.write_all(serialized.as_bytes())?;
     Ok(())
 }

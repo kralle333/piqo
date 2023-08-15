@@ -12,7 +12,17 @@ pub(crate) struct Task {
     pub created_at_utc: i64,
     pub updated_at_utc: i64,
     pub archived_at_utc: Option<i64>,
+    pub due_date_utc: Option<i64>,
     pub assigned_to: Vec<u64>,
+    pub check_list: Vec<CheckListItem>,
+    pub last_check_list_index: u64,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub(crate) struct CheckListItem {
+    pub index: u64,
+    pub name: String,
+    pub checked: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -28,8 +38,11 @@ pub(crate) struct TaskJson {
     pub updated_at_utc: String,
     pub archived_at_utc_unix: i64,
     pub archived_at_utc: String,
+    pub due_date_utc_unix: i64,
+    pub due_date_utc: String,
     pub assigned_to_ids: Vec<u64>,
     pub assigned_to: Vec<User>,
+    pub check_list: Vec<CheckListItem>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -55,6 +68,12 @@ pub(crate) struct User {
 }
 
 impl Display for User {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name)
+    }
+}
+
+impl Display for CheckListItem {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.name)
     }
@@ -89,7 +108,7 @@ impl Project {
         self.categories.push(self.create_category(name))
     }
 
-    pub(crate) fn add_task(&mut self, name: String, description: String) -> u64 {
+    pub(crate) fn add_task(&mut self, name: String) -> u64 {
         let id = utils::get_unused_id(self.tasks.iter().map(|i| i.id).collect());
         let created_at_utc = chrono::Utc::now().timestamp();
         let updated_at_utc = chrono::Utc::now().timestamp();
@@ -97,12 +116,15 @@ impl Project {
         let task = Task {
             id,
             name,
-            description,
+            description: String::new(),
             category,
             created_at_utc,
             updated_at_utc,
             archived_at_utc: None,
             assigned_to: vec![],
+            due_date_utc: None,
+            check_list: vec![],
+            last_check_list_index: 0,
         };
         self.tasks.push(task);
         id
@@ -254,5 +276,57 @@ impl Project {
             .find(|u| u.id == id)
             .unwrap()
             .git_email = email;
+    }
+
+    pub(crate) fn add_checklist_item(&mut self, task_id: u64, checklist_item_name: String) {
+        let task = self.tasks.iter_mut().find(|t| t.id == task_id).unwrap();
+
+        let next_index = task.last_check_list_index + 1;
+
+        task.check_list.push(CheckListItem {
+            index: next_index,
+            name: checklist_item_name,
+            checked: false,
+        });
+        task.last_check_list_index = next_index;
+    }
+
+    pub(crate) fn remove_checklist_item(&mut self, task_id: u64, check_list_index: u64) {
+        self.tasks
+            .iter_mut()
+            .find(|t| t.id == task_id)
+            .unwrap()
+            .check_list
+            .retain(|c| c.index != check_list_index);
+    }
+    pub(crate) fn get_task_checklist(&self, task_id: u64) -> Vec<CheckListItem> {
+        self.tasks
+            .iter()
+            .find(|t| t.id == task_id)
+            .unwrap()
+            .check_list
+            .iter()
+            .map(|c| c.to_owned())
+            .collect()
+    }
+
+    pub(crate) fn set_task_due_date(&mut self, id: u64, due_date: i64) {
+        self.tasks
+            .iter_mut()
+            .find(|t| t.id == id)
+            .unwrap()
+            .due_date_utc = Some(due_date);
+    }
+
+    pub(crate) fn clear_task_due_date(&mut self, id: u64) {
+        self.tasks
+            .iter_mut()
+            .find(|t| t.id == id)
+            .unwrap()
+            .due_date_utc = None;
+    }
+
+    pub(crate) fn get_task_due_time(&self, id: u64) -> Option<i64> {
+        self.tasks.iter().find(|t| t.id == id).unwrap().due_date_utc
     }
 }

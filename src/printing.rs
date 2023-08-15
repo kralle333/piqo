@@ -1,11 +1,12 @@
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, Utc};
 use owo_colors::OwoColorize;
 use std::collections::HashMap;
 
+use crate::models::Project;
 use crate::models::{Task, TaskJson, User};
 use crate::utils;
 use crate::utils::truncate as t;
-use crate::{models::Project, utils::center_align as c};
+use crate::utils::truncate_then_center_align as ct;
 
 impl Project {
     pub(crate) fn print_tasks_detailed(&self) {
@@ -23,13 +24,30 @@ impl Project {
                 "Category: {}",
                 self.get_category(task.category).unwrap().name
             );
+
+            if !task.check_list.is_empty() {
+                println!("Checklist:");
+                for item in &task.check_list {
+                    let line = match item.checked {
+                        true => format!("- [x] {}", item),
+                        false => format!("- [ ] {}", item),
+                    };
+                    println!("{}", line);
+                }
+            }
+            if task.due_date_utc.is_some() {
+                println!(
+                    "Due date: {}",
+                    NaiveDateTime::from_timestamp_opt(task.due_date_utc.unwrap(), 0).unwrap()
+                );
+            }
             println!("Assigned to:");
             if task.assigned_to.is_empty() {
-                println!(" • None");
+                println!("- None");
             } else {
                 self.get_assigned_users(task.id).iter().for_each(|u| {
                     println!(
-                        " • {} <{}>",
+                        "- {} <{}>",
                         u.name,
                         u.git_email.to_owned().unwrap_or("no email".to_string())
                     );
@@ -53,13 +71,37 @@ impl Project {
             user_names.insert(&user.id, &user.name);
         }
 
-        let l = vec![36, 0, 12, 30];
+        let has_any_with_due_date = tasks.iter().any(|t| t.due_date_utc.is_some());
 
-        let header_0 = &c("Name", l[0]).bold().to_string();
-        // let header_1 = &c("Description", l[1]);
-        let header_2 = &c("Category", l[2]).bold().to_string();
-        let header_3 = &c("Assigned To", l[3]).bold().to_string();
-        println!("{:<36}|{:<12}|{:<30}", header_0, header_2, header_3,);
+        //TODO: This code is a nightmare.
+        // Suggestion: built formatting string with percentages of how much space each field should take up
+        let mut l = vec![36, 0, 12, 30];
+
+        if !has_any_with_due_date {
+            println!(
+                "{:^a$}|{:^b$}|{:^c$}",
+                "Name".bold(),
+                "Category".bold(),
+                "Assigned To".bold(),
+                a = l[0],
+                b = l[2],
+                c = l[3],
+            );
+        } else {
+            l[0] = 30;
+            l[1] = 6;
+            println!(
+                "{:^a$}|{:^b$}|{:^c$}|{:^d$}",
+                "Name".bold(),
+                "Due".bold(),
+                "Category".bold(),
+                "Assigned To".bold(),
+                a = l[0],
+                b = l[1],
+                c = l[2],
+                d = l[3],
+            );
+        }
 
         println!("{}", "-".repeat(80));
 
@@ -84,18 +126,38 @@ impl Project {
                 true => "None".to_string(),
             };
 
+            if has_any_with_due_date {
+                print!("{:<a$}|", &t(&task.name, l[0]), a = l[0]);
+                if task.due_date_utc.is_some() {
+                    let seconds_till = task.due_date_utc.unwrap() - Utc::now().timestamp();
+                    let (formatted_due_date, style) = &utils::display_due_date_time(seconds_till);
+                    // Printing this way was the only way for me to get colors formatted correctly
+                    print!("{:^b$}|", &formatted_due_date.style(*style), b = l[1]);
+                } else {
+                    print!("{:^b$}|", "", b = l[1]);
+                }
+
+                println!(
+                    "{:^c$}|{:^d$}",
+                    &self.get_category(task.category).unwrap().name.to_string(),
+                    &t(&assigned_to, l[3]),
+                    c = l[2],
+                    d = l[3],
+                );
+                return;
+            }
             println!(
-                "{:<36}|{:<12}|{:<30}",
+                "{:<a$}|{:^b$}|{:^c$}",
                 &t(&task.name, l[0]),
                 // &t(&task.description, l[1]),
-                &c(
-                    &t(
-                        &self.get_category(task.category).unwrap().name.to_string(),
-                        l[2]
-                    ),
+                &t(
+                    &self.get_category(task.category).unwrap().name.to_string(),
                     l[2]
                 ),
-                &c(&t(&assigned_to, l[3]), l[3])
+                &t(&assigned_to, l[3]),
+                a = l[0],
+                b = l[2],
+                c = l[3],
             );
         });
     }
@@ -144,6 +206,18 @@ impl Project {
 
                     utils::print_divider(width);
                 }
+
+                if !t.check_list.is_empty() {
+                    utils::print_line_left("Checklist:", width);
+                    for item in &t.check_list {
+                        let line = match item.checked {
+                            true => format!("- [x] {}", item),
+                            false => format!("- [ ] {}", item),
+                        };
+                        utils::print_line_left(&line, width);
+                    }
+                    utils::print_divider(width);
+                }
                 utils::print_line_left(
                     &format!(
                         "Category: {}",
@@ -177,7 +251,14 @@ impl Project {
                 //     )
                 // );
                 // utils::print_line_left(modified_at.as_str(), width);
-
+                if t.due_date_utc.is_some() {
+                    let seconds_till = t.due_date_utc.unwrap() - Utc::now().timestamp();
+                    let (formatted_due_date, style) = &utils::display_due_date_time(seconds_till);
+                    utils::print_line_left(
+                        &format!("Due: {}", formatted_due_date.style(*style)),
+                        width,
+                    );
+                }
                 if self.users.is_empty() {
                     utils::print_line_left("No users assigned to task", width);
                 } else {
@@ -185,7 +266,7 @@ impl Project {
                     self.get_assigned_users(id).iter().for_each(|u| {
                         utils::print_line_left(
                             &format!(
-                                " • {} <{}>",
+                                "- {} <{}>",
                                 u.name,
                                 u.git_email.to_owned().unwrap_or("no email".to_string())
                             ),
@@ -222,9 +303,9 @@ impl Project {
         if !tasks.is_empty() {
             let header = format!(
                 "{:<20} {:<40} {:<20}", // | {:<25} | {:<25}",
-                c("Name", 20).bold(),
-                c("Description", 40).bold(),
-                c("Assigned to", 20).bold(),
+                ct("Name", 20).bold(),
+                ct("Description", 40).bold(),
+                ct("Assigned to", 20).bold(),
             );
 
             println!("{}", header);
@@ -246,7 +327,7 @@ impl Project {
                     "{:<20}|{:<30}|{:<20}",
                     t(&task.name, 20),
                     t(&task.description, 30),
-                    c(&assigned_to_string, 20),
+                    ct(&assigned_to_string, 20),
                 );
             }
             println!();
@@ -254,6 +335,12 @@ impl Project {
             println!("No tasks in this category");
             println!();
         }
+    }
+
+    fn unix_time_to_string(time: i64) -> String {
+        NaiveDateTime::from_timestamp_opt(time, 0)
+            .unwrap()
+            .to_string()
     }
 
     pub(crate) fn print_tasks_json(&self) {
@@ -272,22 +359,21 @@ impl Project {
                     .map(|i| self.get_user(*i).unwrap())
                     .collect::<Vec<crate::models::User>>(),
                 assigned_to_ids: t.assigned_to.to_owned(),
-                created_at_utc: NaiveDateTime::from_timestamp_opt(t.created_at_utc, 0)
-                    .unwrap()
-                    .to_string(),
+                created_at_utc: Self::unix_time_to_string(t.created_at_utc),
                 created_at_utc_unix: t.created_at_utc,
-                updated_at_utc: NaiveDateTime::from_timestamp_opt(t.updated_at_utc, 0)
-                    .unwrap()
-                    .to_string(),
+                updated_at_utc: Self::unix_time_to_string(t.updated_at_utc),
                 updated_at_utc_unix: t.updated_at_utc,
                 archived_at_utc_unix: t.archived_at_utc.unwrap_or(0),
                 archived_at_utc: match t.archived_at_utc {
-                    Some(archived_at_utc) => NaiveDateTime::from_timestamp_opt(archived_at_utc, 0)
-                        .unwrap()
-                        .to_string(),
-
+                    Some(archived_at_utc) => Self::unix_time_to_string(archived_at_utc),
                     None => "".to_string(),
                 },
+                due_date_utc: match t.due_date_utc {
+                    Some(due_date_utc) => Self::unix_time_to_string(due_date_utc),
+                    None => "".to_string(),
+                },
+                due_date_utc_unix: t.due_date_utc.unwrap_or(0),
+                check_list: t.check_list.to_owned(),
             })
             .collect::<Vec<_>>();
 

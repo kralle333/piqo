@@ -42,3 +42,16 @@ impl Display for UserItem {
         write!(f, "{} <{}>", self.name, self.git_email)
     }
 }
+
+#[derive(Debug, Copy, Clone)]
+pub(crate) enum DueTime {
+    Noon,
+    Midnight,
+    Custom,
+}
+
+impl Display for DueTime {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        write!(f, "{self:?}")
+    }
+}
