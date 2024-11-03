@@ -1,4 +1,4 @@
-use chrono::{NaiveDateTime, Utc};
+use chrono::{DateTime, Utc};
 use owo_colors::OwoColorize;
 use std::collections::HashMap;
 
@@ -13,12 +13,7 @@ impl Project {
         for task in self.get_unarchived_tasks() {
             println!("{}", task.name.green());
             if !task.description.is_empty() {
-                println!("{}", "-".repeat(20));
-                println!(
-                    "{}",
-                    utils::format_description(&task.description, 80).join("\n")
-                );
-                println!("{}", "-".repeat(20));
+                Self::print_description(&task.description);
             }
             println!(
                 "Category: {}",
@@ -38,7 +33,7 @@ impl Project {
             if task.due_date_utc.is_some() {
                 println!(
                     "Due date: {}",
-                    NaiveDateTime::from_timestamp_opt(task.due_date_utc.unwrap(), 0).unwrap()
+                    DateTime::from_timestamp(task.due_date_utc.unwrap(), 0).unwrap()
                 );
             }
             println!("Assigned to:");
@@ -174,7 +169,7 @@ impl Project {
         );
     }
     pub(crate) fn print_status(&self) {
-        let tasks_msg = format!("Tasks:\t{}", self.get_unarchived_tasks().len(),);
+        let tasks_msg = format!("Tasks:\t{}", self.get_unarchived_tasks().len(), );
         println!("{}", tasks_msg.green());
         let users_msg = format!("Users:\t{}", self.users.len());
         println!("{}", users_msg.blue());
@@ -192,94 +187,73 @@ impl Project {
         let task = self.tasks.iter().find(|t| t.id == id);
 
         let width = 60;
+        let Some(t) = task else {
+            println!("Task with id {} not found", id);
+            return;
+        };
 
-        match task {
-            Some(t) => {
-                utils::print_divider(width);
-                utils::print_line_centered(&t.name, width);
-                utils::print_divider(width);
+        utils::print_divider(width);
+        utils::print_line_centered(&t.name, width);
+        utils::print_divider(width);
 
-                if !t.description.is_empty() {
-                    for segment in utils::format_description(&t.description, width - 2).iter() {
-                        utils::print_line_left(segment, width);
-                    }
+        if !t.description.is_empty() {
+            for segment in utils::format_description(&t.description, width - 2).iter() {
+                utils::print_line_left(segment, width);
+            }
 
-                    utils::print_divider(width);
-                }
+            utils::print_divider(width);
+        }
 
-                if !t.check_list.is_empty() {
-                    utils::print_line_left("Checklist:", width);
-                    for item in &t.check_list {
-                        let line = match item.checked {
-                            true => format!("- [x] {}", item),
-                            false => format!("- [ ] {}", item),
-                        };
-                        utils::print_line_left(&line, width);
-                    }
-                    utils::print_divider(width);
-                }
+        if !t.check_list.is_empty() {
+            utils::print_line_left("Checklist:", width);
+            for item in &t.check_list {
+                let line = match item.checked {
+                    true => format!("- [x] {}", item),
+                    false => format!("- [ ] {}", item),
+                };
+                utils::print_line_left(&line, width);
+            }
+            utils::print_divider(width);
+        }
+        utils::print_line_left(
+            &format!(
+                "Category: {}",
+                self.categories
+                    .iter()
+                    .find(|c| c.id == t.category)
+                    .unwrap()
+                    .name
+            ),
+            width,
+        );
+
+        if t.due_date_utc.is_some() {
+            let seconds_till = t.due_date_utc.unwrap() - Utc::now().timestamp();
+            let (formatted_due_date, style) = &utils::display_due_date_time(seconds_till);
+            utils::print_line_left(
+                &format!("Due: {}", formatted_due_date.style(*style)),
+                width,
+            );
+        }
+        if self.users.is_empty() {
+            utils::print_line_left("No users assigned to task", width);
+        } else {
+            utils::print_line_left("Users assigned to task:", width);
+            self.get_assigned_users(id).iter().for_each(|u| {
                 utils::print_line_left(
                     &format!(
-                        "Category: {}",
-                        self.categories
-                            .iter()
-                            .find(|c| c.id == t.category)
-                            .unwrap()
-                            .name
+                        "- {} <{}>",
+                        u.name,
+                        u.git_email.to_owned().unwrap_or("no email".to_string())
                     ),
                     width,
-                );
-                // let created_at =
-                //     chrono::NaiveDateTime::from_timestamp_opt(t.created_at_utc, 0).unwrap();
-
-                // utils::print_line_left(
-                //     &format!(
-                //         "Created At: {}",
-                //         chrono::DateTime::<chrono::Utc>::from_utc(
-                //             created_at.to_owned(),
-                //             chrono::Utc
-                //         )
-                //     ),
-                //     width,
-                // );
-
-                // let modified_at = &format!(
-                //     "Updated At: {}",
-                //     chrono::DateTime::<chrono::Utc>::from_utc(
-                //         chrono::NaiveDateTime::from_timestamp_opt(t.updated_at_utc, 0).unwrap(),
-                //         chrono::Utc
-                //     )
-                // );
-                // utils::print_line_left(modified_at.as_str(), width);
-                if t.due_date_utc.is_some() {
-                    let seconds_till = t.due_date_utc.unwrap() - Utc::now().timestamp();
-                    let (formatted_due_date, style) = &utils::display_due_date_time(seconds_till);
-                    utils::print_line_left(
-                        &format!("Due: {}", formatted_due_date.style(*style)),
-                        width,
-                    );
-                }
-                if self.users.is_empty() {
-                    utils::print_line_left("No users assigned to task", width);
-                } else {
-                    utils::print_line_left("Users assigned to task:", width);
-                    self.get_assigned_users(id).iter().for_each(|u| {
-                        utils::print_line_left(
-                            &format!(
-                                "- {} <{}>",
-                                u.name,
-                                u.git_email.to_owned().unwrap_or("no email".to_string())
-                            ),
-                            width,
-                        )
-                    });
-                }
-
-                utils::print_divider(width)
-            }
-            None => println!("Task with id {} not found", id),
+                )
+            });
         }
+
+        utils::print_divider(width)
     }
+
 
     pub(crate) fn print_category(&self, category_id: u64) {
         let mut user_names = HashMap::new();
@@ -338,7 +312,7 @@ impl Project {
     }
 
     fn unix_time_to_string(time: i64) -> String {
-        NaiveDateTime::from_timestamp_opt(time, 0)
+        DateTime::from_timestamp(time, 0)
             .unwrap()
             .to_string()
     }
@@ -357,7 +331,7 @@ impl Project {
                     .assigned_to
                     .iter()
                     .map(|i| self.get_user(*i).unwrap())
-                    .collect::<Vec<crate::models::User>>(),
+                    .collect::<Vec<User>>(),
                 assigned_to_ids: t.assigned_to.to_owned(),
                 created_at_utc: Self::unix_time_to_string(t.created_at_utc),
                 created_at_utc_unix: t.created_at_utc,
@@ -406,12 +380,7 @@ impl Project {
         for task in &user_tasks {
             println!("{}", task.name.green());
             if !task.description.is_empty() {
-                println!("{}", "-".repeat(20));
-                println!(
-                    "{}",
-                    utils::format_description(&task.description, 80).join("\n")
-                );
-                println!("{}", "-".repeat(20));
+                Self::print_description(&task.description);
             }
             println!(
                 "Category: {}",
@@ -419,5 +388,14 @@ impl Project {
             );
             println!();
         }
+    }
+
+    fn print_description(description: &str) {
+        println!("{}", "-".repeat(20));
+        println!(
+            "{}",
+            utils::format_description(description, 80).join("\n")
+        );
+        println!("{}", "-".repeat(20));
     }
 }

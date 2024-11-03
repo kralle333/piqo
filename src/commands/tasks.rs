@@ -1,4 +1,4 @@
-use chrono::{NaiveDateTime, NaiveTime, TimeZone, Timelike};
+use chrono::{DateTime, NaiveDateTime, NaiveTime, TimeZone, Timelike};
 use clap::ArgMatches;
 
 use inquire::validator::Validation;
@@ -144,7 +144,7 @@ fn prompt_get_due_time() -> Result<i64, inquire::error::InquireError> {
         .with_minute(due_time_minute)
         .unwrap();
 
-    let unix_time_utc = unix_time.naive_utc().timestamp();
+    let unix_time_utc = unix_time.timestamp();
     Ok(unix_time_utc)
 }
 
@@ -195,7 +195,7 @@ fn prompt_edit_task(p: &mut Project) -> Result<(), inquire::error::InquireError>
                 "Select checklist item:",
                 vec!["Add checklist item", "Remove checklist item"],
             )
-            .prompt()?;
+                .prompt()?;
             match checklist_option {
                 "Add checklist item" => prompt_create_checklist_item(p, selected_task.id)?,
                 "Remove checklist item" => {
@@ -215,7 +215,7 @@ fn prompt_edit_task(p: &mut Project) -> Result<(), inquire::error::InquireError>
             p.set_task_due_date(selected_task.id, due_date);
         }
         "Clear due date" => {
-            let due_date = NaiveDateTime::from_timestamp_opt(task_due_time.unwrap(), 0)
+            let due_date = DateTime::from_timestamp(task_due_time.unwrap(), 0)
                 .unwrap()
                 .to_string();
             let clear =
@@ -251,7 +251,7 @@ pub(crate) fn prompt_create_tasks(p: &mut Project) -> Result<(), inquire::error:
     //TODO: use inquire::Confirm instead
     prompt_create_task(p)?;
     loop {
-        let create_more = inquire::Select::new("Create more tasks?", vec!["Yes", "No"]).prompt()?;
+        let create_more = Select::new("Create more tasks?", vec!["Yes", "No"]).prompt()?;
         if create_more == "No" {
             return Ok(());
         }

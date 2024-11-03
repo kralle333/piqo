@@ -3,6 +3,7 @@ mod data_storage;
 mod models;
 mod printing;
 mod utils;
+mod project;
 
 fn main() {
     // env::set_var("RUST_BACKTRACE", "full");
