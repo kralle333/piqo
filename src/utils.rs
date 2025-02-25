@@ -27,8 +27,8 @@ pub(crate) fn get_local_git_email() -> Option<String> {
 }
 
 pub(crate) fn gen_4digit_id() -> u64 {
-    let mut rng = rand::thread_rng();
-    rng.gen_range(1000..9999)
+    let mut rng = rand::rng();
+    rng.random_range(1000..9999)
 }
 
 pub(crate) fn get_unused_id(current_ids: Vec<u64>) -> u64 {

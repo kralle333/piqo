@@ -1,7 +1,7 @@
 [package]
 name = "piqo"
-version = "0.1.2"
-edition = "2021"
+version = "0.1.3"
+edition = "2024"
 authors = ["Kristian Pilegaard Jensen <kralle@gmail.com>"]
 description = "A easy to use tool for managing your tasks in a git repository project."
 readme = "README.md"
@@ -14,8 +14,8 @@ license = "MIT"
 clap = { version = "4.3.21", features=["cargo"]}
 serde = { version = "1.0", features = ["derive"] }
 serde_json = {version = "1.0.104"}
-inquire = { version = "0.6.2", features=["editor", "date"]}
+inquire = { version = "0.7.5", features=["editor", "date"]}
 chrono = { version = "0.4.26"}
-rand = {version = "0.8.5"}
-owo-colors = "3.5.0"
-gix-discover = "0.22.1"
+rand = {version = "0.9.0" }
+owo-colors = "4.2.0"
+gix-discover = "0.38.0"

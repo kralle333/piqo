@@ -70,7 +70,7 @@ impl Project {
 
         //TODO: This code is a nightmare.
         // Suggestion: built formatting string with percentages of how much space each field should take up
-        let mut l = vec![36, 0, 12, 30];
+        let mut l = [36, 0, 12, 30];
 
         if !has_any_with_due_date {
             println!(
